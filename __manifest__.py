@@ -24,10 +24,11 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','account','sale','crm'],
+    'depends': ['base','account','sale','crm','mail','contacts'],
 
     # always loaded
     'data': [
+        'data/mail_template_data.xml',
         'views/policy_setup_view.xml',
         'views/endorsement.xml',
         'views/renewal_view.xml',
@@ -39,6 +40,10 @@
         "views/views.xml",
         "views/view.xml",
         "views/application_menu.xml",
+        'reports/report_crm.xml',
+        'reports/crm_report_template.xml',
+
+
 
 
 

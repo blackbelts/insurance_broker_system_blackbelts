@@ -220,6 +220,48 @@ class crm_leads(models.Model):
         if self.c_type.id:
             self.planned_revenue = self.ammount / self.c_type.rate
 
+    @api.multi
+    def print_opp(self):
+        return self.env.ref('insurance_broker_system_blackbelts.crm_report').report_action(self)
+
+    @api.multi
+    def send_mail_template(self):
+        # Find the e-mail template
+        self.ensure_one()
+        ir_model_data = self.env['ir.model.data']
+        template_id = self.env.ref('insurance_broker_system_blackbelts.opp_email_template')
+        try:
+            compose_form_id = ir_model_data.get_object_reference('mail', 'email_compose_message_wizard_form')[1]
+        except ValueError:
+            compose_form_id = False
+        ctx = {
+            'default_model': 'crm.lead',
+            'default_res_id': self.ids[0],
+            'default_use_template': bool(template_id.id),
+            'default_template_id': template_id.id,
+            'default_composition_mode': 'comment',
+            'mark_so_as_sent': True,
+            # 'custom_layout': "sale.mail_template_data_notification_email_sale_order",
+            'proforma': self.env.context.get('proforma', False),
+            'force_email': True
+        }
+
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'mail.compose.message',
+            'views': [(compose_form_id, 'form')],
+            'view_id': compose_form_id,
+            'target': 'new',
+            'context': ctx,
+        }
+        # You can also find the e-mail template like this:
+        # template = self.env['ir.model.data'].get_object('mail_template_demo', 'example_email_template')
+
+        # Send out the e-mail template to the user
+        template_id.send_mail(self.ids[0], force_send=True)
+        # self.env['mail.template'].browse(template.id).send_mail(self.id)
 
 
 
