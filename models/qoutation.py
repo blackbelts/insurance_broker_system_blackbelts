@@ -8,8 +8,8 @@ class crm_leads(models.Model):
     planned_revenue = fields.Float('Expected Premium in Company Currency', track_visibility='always')
     c_type = fields.Many2one('res.currency', string='Expected Premium in Currency')
     ammount = fields.Float(string='Ammount')
-    user_id = fields.Many2one('res.users', string='Lead Operator', index=True, track_visibility='onchange',
-                              default=lambda self: self.env.user )
+    # user_id = fields.Many2one('res.users', string='Lead Operator', index=True, track_visibility='onchange',
+    #                           default=lambda self: self.env.user )
     create_uid = fields.Many2one('res.users', string='Lead Generator')
     policy_number = fields.Char( string='Policy Number')
 
@@ -52,7 +52,7 @@ class crm_leads(models.Model):
 
     coverage_line = fields.One2many('coverage.line', 'covers_crm', 'Coverage lines')
 
-
+    selected_proposal = fields.One2many('proposal.opp.bb', 'select_crm', compute='proposalselected')
     prop_id = fields.Integer('', readonly=True)
     my_notes = fields.Text('Under writting')
 
@@ -73,7 +73,10 @@ class crm_leads(models.Model):
 
 
 
-
+    def proposalselected(self):
+        print('5555555')
+        ids = self.env['proposal.opp.bb'].search([('id', '=',self.prop_id)]).ids
+        self.selected_proposal = [(6, 0, ids)]
 
     @api.multi
     def covers_button(self):
@@ -94,7 +97,20 @@ class crm_leads(models.Model):
         #     'flags': {'form': {'action_buttons': True}}
 
 
+    @api.multi
+    def proposal_button(self):
+        form_view = self.env.ref('insurance_broker_system_blackbelts.form_proposal_opp')
 
+        return {
+            'name': ('Proposals'),
+            'view_type': 'form',
+            'view_mode': 'form',
+            'views': [(form_view.id, 'form')],
+            'res_model': 'proposal.opp.bb',
+            'target': 'current',
+            'type': 'ir.actions.act_window',
+            'context': {'default_proposal_crm':self.id},
+        }
 
 
     # objectcar_selected = fields.Many2one('car.object', string='car')
@@ -211,15 +227,6 @@ class crm_leads(models.Model):
             else :
                 record.create_uid=self.env.uid
 
-
-
-
-
-    @api.onchange('ammount', 'c_type')
-    def _change(self):
-        if self.c_type.id:
-            self.planned_revenue = self.ammount / self.c_type.rate
-
     @api.multi
     def print_opp(self):
         return self.env.ref('insurance_broker_system_blackbelts.crm_report').report_action(self)
@@ -262,6 +269,16 @@ class crm_leads(models.Model):
         # Send out the e-mail template to the user
         template_id.send_mail(self.ids[0], force_send=True)
         # self.env['mail.template'].browse(template.id).send_mail(self.id)
+
+
+
+
+
+    @api.onchange('ammount', 'c_type')
+    def _change(self):
+        if self.c_type.id:
+            self.planned_revenue = self.ammount / self.c_type.rate
+
 
 
 

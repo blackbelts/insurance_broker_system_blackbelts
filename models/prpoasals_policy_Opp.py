@@ -17,62 +17,22 @@ class Proposals_opp(models.Model):
     group = fields.Boolean('Groups')
     # risk_cover_selected= fields.Many2one('risks.opp')
     show_risks_covers=fields.Boolean('')
-
-    @api.one
-    @api.depends('proposal_crm.coverage_line')
-    def set_prem(self):
-        if self.proposal_crm.coverage_line:
-            print ('mostafa')
-            self.premium = 0
-            for rec in self:
-                ids = self.env['coverage.line'].search(
-                    [('proposal_id', '=', rec.proposal_id)])
-                for coverrecord in ids:
-                    self.premium += coverrecord.net_premium
-
-                print (ids)
-
-    def save(self):
-        self.show_risks_covers = True
-        return True
-
-    @api.onchange('Company')
-    def settest(self):
-        self.test = self.proposal_crm.test
-
-    @api.onchange('Company')
-    def setgroup(self):
-        self.group = self.proposal_crm.group
-
-    @api.onchange('Company')
-    def setid(self):
-        self.rel = self.id
-        print(self.rel)
-
-    @api.multi
-    def select_proposal(self):
-        self.proposal_crm.test1 = True
-        self.proposal_crm.prop_id = self.id
-
-
-
-
-
-
-
     # selected_id=fields.Integer('')
 
-    # @api.multi
-    # def get_covers(self):
-    #     for lead in self:
-    #         covers_ids = []
-    #         if self.proposal_risks:
-    #             for rec in self.proposal_risks:
-    #                 covers_ids=self.proposal_risks[0].risks_covers.ids
-    #                 for car in self.risk_cover_selected:
-    #                     covers_ids = car.risks_covers.ids
-    #
-    #         lead.selected_risk_covers = [(6,0, covers_ids)]
+    _sql_constraints = [
+        ('proposal_id_uniq', 'unique (proposal_id)', 'The Proposal ID  already exist !')
+    ]
+    @api.multi
+    def get_covers(self):
+        for lead in self:
+            covers_ids = []
+            if self.proposal_risks:
+                for rec in self.proposal_risks:
+                    covers_ids=self.proposal_risks[0].risks_covers.ids
+                    for car in self.risk_cover_selected:
+                        covers_ids = car.risks_covers.ids
+
+            lead.selected_risk_covers = [(6,0, covers_ids)]
 
 
 
@@ -148,7 +108,7 @@ class Proposals_opp(models.Model):
     #
     #     self.cargo_proposal_test = result
 
-
+    select_crm = fields.Many2one('crm.lead')
     # proposal_risks = fields.One2many('risks.opp', 'proposal_risks_opp', force_save=True)
 
     # car_proposal_test_selected = fields.One2many(related='car')
@@ -227,7 +187,43 @@ class Proposals_opp(models.Model):
     #
     #             cargo.covers_cargo = res
 
+    @api.one
+    @api.depends('proposal_crm.coverage_line')
+    def set_prem(self):
+        if self.proposal_crm.coverage_line:
+            print ('mostafa')
+            self.premium=0
+            for rec in self:
+                ids = self.env['coverage.line'].search(
+                                [('proposal_id', '=', rec.proposal_id)])
+                for coverrecord in ids:
+                    self.premium+=coverrecord.net_premium
 
+                print (ids)
+
+
+    def save(self):
+        self.show_risks_covers = True
+        return True
+
+    @api.onchange('Company')
+    def settest(self):
+        self.test = self.proposal_crm.test
+
+
+    @api.onchange('Company')
+    def setgroup(self):
+        self.group = self.proposal_crm.group
+
+    @api.onchange('Company')
+    def setid(self):
+        self.rel= self.id
+        print(self.rel)
+
+    @api.multi
+    def select_proposal(self):
+        self.proposal_crm.test1 = True
+        self.proposal_crm.prop_id = self.id
 
 
 

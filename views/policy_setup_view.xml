@@ -11,6 +11,8 @@
                 <field name="line_of_business"/>
                 <field name="object"/>
                 <field name="desc"/>
+                <field name="income_account"/>
+                <field name="expense_account"/>
             </tree>
         </field>
     </record>
@@ -20,12 +22,14 @@
         <field name="priority" eval="16"/>
         <field name="arch" type="xml">
             <form string="Idea form">
-                <group colspan="4">
+                <group colspan="2">
                     <separator string="Create New Line of Business" colspan="2"/>
                     <field name="insurance_type"/>
                     <field name="line_of_business"/>
                     <field name="object"/>
                     <field name="desc"/>
+                    <field name="income_account"/>
+                    <field name="expense_account"/>
                 </group>
             </form>
         </field>
@@ -41,8 +45,6 @@
         </field>
     </record>
 
-
-
     <!--Product info-->
     <record model="ir.ui.view" id="tree_product">
         <field name="name">tree.product</field>
@@ -53,8 +55,6 @@
                 <field name="product_name"/>
                 <field name="insurer"/>
                 <field name="line_of_bus"/>
-                <field name="coverage"/>
-                <field name="brokerage"/>
             </tree>
         </field>
     </record>
@@ -68,18 +68,11 @@
                     <group>
                         <separator string="Create New Product" colspan="2"/>
                         <group>
-                            <field name="insurer"/>
+                            <field name="insurer" context="{'default_customer': 0,'default_supplier': 1, 'default_insurer_type': 1,'default_company_type': 'company','default_is_company': 1}"/>
                             <field name="line_of_bus"/>
                             <field name="product_name"/>
                         </group>
                         <notebook colspan="4">
-                            <page string="Invoicing">
-                                <group>
-                                    <separator string="Accounting Entries"/>
-                                    <field name="income_account"/>
-                                    <field name="expense_account"/>
-                                </group>
-                            </page>
                             <page string="Coverage Definition">
                                 <field name="coverage"/>
                             </page>
@@ -281,5 +274,42 @@
         res_model="product.claim.action"
         view_mode="form"
         target="new"/>
+    <record model="ir.ui.view" id="tree_setup">
+        <field name="name">tree.insurance.setup</field>
+        <field name="model">insurance.setup</field>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <tree string="list">
+                <field name="setup_key"/>
+                <field name="setup_id"/>
+                <field name="setup_item"/>
+            </tree>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="form_insurance_setup">
+        <field name="name">form.insurance.setup</field>
+        <field name="model">insurance.setup</field>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <form string="Idea form">
+                <group colspan="2">
+                    <separator string="Create New Item" colspan="2"/>
+                    <field name="setup_key"/>
+                    <field name="setup_id"/>
+                    <field name="setup_item"/>
+                </group>
+            </form>
+        </field>
+    </record>
+    <record model="ir.actions.act_window" id="insurance_setup_action">
+        <field name="name">Insurance Setup</field>
+        <field name="res_model">insurance.setup</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">Create Insurance Setup
+            </p>
+        </field>
+    </record>
 
 </odoo>

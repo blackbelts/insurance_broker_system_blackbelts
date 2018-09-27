@@ -1,8 +1,9 @@
 import random
 import string
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from datetime import datetime, timedelta
+from odoo.exceptions import UserError
 
 
 class PolicyBroker(models.Model):
@@ -30,6 +31,18 @@ class PolicyBroker(models.Model):
     #
     #
 
+    @api.multi
+    def show_claim(self):
+        return {
+            'name': ('Claim'),
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'insurance.claim',  # model name ?yes true ok
+            'target': 'current',
+            'type': 'ir.actions.act_window',
+            'context': {'default_policy_number': self.id},
+            'domain': [('policy_number', '=', self.id)]
+        }
 
 
 
@@ -82,7 +95,7 @@ class PolicyBroker(models.Model):
 
 
 
-    @api.onchange("term", "number")
+    @api.onchange("t_permimum","term", "number")
     def _cmpute_date_and_amount(self):
         if self.term == "onetime":
             self.rella_installment_id = [(0, 0, {
@@ -178,14 +191,15 @@ class PolicyBroker(models.Model):
 
 
 
+
     policy_number = fields.Char(string="Renewal Policy Number")
     renwal_check = fields.Boolean(string="Renewal")
     holding_cam = fields.Char(string="Holding Campany")
 
     std_id = fields.Char(string="Policy Number" ,required=True)
     issue_date = fields.Date(string="Issue Date")
-    start_date = fields.Date(string="Coverage Start On", required=True)
-    end_date = fields.Date(string="Coverage End On")
+    start_date = fields.Date(string="Effective From", required=True)
+    end_date = fields.Date(string="Effective To")
 
 
 
@@ -193,7 +207,7 @@ class PolicyBroker(models.Model):
         [("onetime", "One Time"), ("year", "yearly"), ("quarter", "Quarterly"), ("month", "Monthly")],
         string="payment frequency")
     number = fields.Integer(string="No Of Years", default=1)
-    barnche = fields.Char("Branch")
+
 
     gross_perimum = fields.Float(string="Gross Perimum")
     t_permimum = fields.Float(string="Net Permium", compute="_compute_t_premium")
@@ -242,6 +256,9 @@ class PolicyBroker(models.Model):
     checho = fields.Boolean()
     count_claim = fields.Integer(compute="compute_true")
 
+    barnche = fields.Many2one(related="company.insurer_branch", string="Branch")
+
+
 
 
     @api.multi
@@ -251,13 +268,14 @@ class PolicyBroker(models.Model):
         for id in ids:
             self.count_claim +=1
 
-    @api.multi
+    @api.one
     @api.depends("name_cover_rel_ids")
     def _compute_t_premium(self):
         total = 0.0
-        for line in self.name_cover_rel_ids:
-            total += line.net_perimum
-        self.t_permimum = total
+        for rec in self:
+            for line in rec.name_cover_rel_ids:
+                total += line.net_perimum
+        rec.t_permimum = total
 
 
     @api.multi
@@ -335,9 +353,92 @@ class PolicyBroker(models.Model):
         self.checho = True
         return True
 
+    # nohamed saber code
+
+    policy_status = fields.Selection([('pending', 'Pending'),
+                                      ('approve', 'Approve'), ],
+                                     'Status', required=True, default='pending')
+    hide_inv_button = fields.Boolean(copy=False)
+    # invoice_ids = fields.One2many('account.invoice', 'insurance_id', string='Invoices', readonly=True)
+
+    @api.multi
+    def confirm_policy(self):
+        if self.term:
+            self.policy_status = 'approve'
+            self.hide_inv_button = True
+        else:
+            raise UserError(_("Payment Frequency should be Selected"))
+
+    @api.multi
+    def create_invoices(self):
+        for record in self.rella_installment_id:
+            if record.amount !=0:
+                self.env['account.invoice'].create({
+                    'type': 'out_invoice',
+                    'partner_id': self.customer.id,
+                    'user_id': self.env.user.id,
+                    # 'insurance_id': self.id,
+                    'origin': self.policy_number,
+                    'invoice_line_ids': [(0, 0, {
+                        'name': 'Invoice For Insurance',
+                        'quantity': 1,
+                        'price_unit': record.amount,
+                        'account_id': self.line_of_bussines.income_account.id,
+                    })],
+                })
+
+            self.env['account.invoice'].create({
+                'type': 'in_invoice',
+                'partner_id': self.company.id,
+                'user_id': self.env.user.id,
+                # 'insurance_id': self.id,
+                'origin': self.policy_number,
+                'invoice_line_ids': [(0, 0, {
+                    'name': 'Bill For Insurance',
+                    'quantity': 1,
+                    'price_unit': record.amount,
+                    'account_id': self.line_of_bussines.expense_account.id,
+                })],
+            })
+        for record in self.share_policy_rel_ids:
+            self.env['account.invoice'].create({
+                'type': 'in_invoice',
+                'partner_id': record.agent.id,
+                'user_id': self.env.user.id,
+                # 'insurance_id': self.id,
+                'origin': self.policy_number,
+                'invoice_line_ids': [(0, 0, {
+                    'name': 'Commission Insurance',
+                    'quantity': 1,
+                    'price_unit': record.amount,
+                    'account_id': self.line_of_bussines.expense_account.id,
+                })],
+            })
+
+        self.env['account.invoice'].create({
+            'type': 'out_invoice',
+            'partner_id': 1,
+            'user_id': self.env.user.id,
+            # 'insurance_id': self.id,
+            'origin': self.policy_number,
+            'invoice_line_ids': [(0, 0, {
+                'name': 'Brokerage Insurance',
+                'quantity': 1,
+                'price_unit': self.total_commision,
+                'account_id': self.line_of_bussines.expense_account.id,
+            })],
+        })
+        self.hide_inv_button = False
+
+class AccountInvoiceRelate(models.Model):
+    _inherit = 'account.invoice'
+
+    # insurance_id = fields.Many2one('policy.broker', string='Insurance')
+    # claim_id = fields.Many2one('claim', string='Insurance')
+
 class Extra_Covers(models.Model):
     _name = "covers.lines"
-    _rec_name="riskk"
+    _rec_name="name1"
 
 
 
@@ -457,119 +558,6 @@ class InstallmentClass(models.Model):
                              ('draft', 'Draft'),],
                            'Paid Status',defualt='draft')
     installment_rel_id = fields.Many2one("policy.broker")
-
-    @api.multi
-    def create_inv(self):
-        form_id = self.env.ref('account.invoice_form')
-        self.write({'paid': 'inv'})
-        return {
-            'view_type': 'form',
-            'view_mode': 'form',
-            'views': [(form_id.id, 'form')],
-            'res_model': 'account.invoice',
-            'target': 'new',
-            'type': 'ir.actions.act_window',
-            'context': {'default_name': self.installment_rel_id.std_id,
-                        'default_origin': 'Customer Invoice',
-                        'default_type': 'out_invoice',
-                        'default_account_id': self.installment_rel_id.customer.property_account_receivable_id.id,
-                        'default_partner_id': self.installment_rel_id.customer.id,
-                        'default_invoice_line_ids':[(0, 0, {
-                                            'name': self.installment_rel_id.selected_proposal.product_pol.product_name,
-                                            'account_id': self.installment_rel_id.selected_proposal.product_pol.income_account.id,
-                                            'price_unit': self.amount,
-                                            'quantity': 1.0,
-                                            'sale_line_ids': False,
-                                            'invoice_line_tax_ids': False,
-                                            'account_analytic_id': False,
-                                        })],},
-            'flags': {'tree': {'action_buttons': True}, 'form': {'action_buttons': True}, 'action_buttons': True},
-        }
-
-
-    @api.multi
-    def create_bill(self):
-        form_id = self.env.ref('account.invoice_supplier_form')
-        self.write({'paid': 'bill'})
-        return {
-            'view_type': 'form',
-            'view_mode': 'form',
-            'views': [(form_id.id, 'form')],
-            'res_model': 'account.invoice',
-            'target': 'new',
-            'type': 'ir.actions.act_window',
-            'context': {'default_name': self.installment_rel_id.std_id,
-                        'default_origin': 'Insurer Bill',
-                        'default_type': 'in_invoice',
-                        'default_account_id': self.installment_rel_id.selected_proposal.Company.property_account_receivable_id.id,
-                        'default_partner_id': self.installment_rel_id.selected_proposal.Company.id,
-                        'default_invoice_line_ids':[(0, 0, {
-                                            'name': self.installment_rel_id.selected_proposal.product_pol.product_name,
-                                            'account_id': self.installment_rel_id.selected_proposal.product_pol.expense_account.id,
-                                            'price_unit': self.amount,
-                                            'quantity': 1.0,
-                                            'sale_line_ids': False,
-                                            'invoice_line_tax_ids': False,
-                                            'account_analytic_id': False,
-                                        })],},
-            'flags': {'tree': {'action_buttons': True}, 'form': {'action_buttons': True}, 'action_buttons': True},
-        }
-
-    @api.multi
-    def create_brok(self):
-        form_id = self.env.ref('account.invoice_form')
-        self.write({'paid': 'brok'})
-        return {
-            'view_type': 'form',
-            'view_mode': 'form',
-            'views': [(form_id.id, 'form')],
-            'res_model': 'account.invoice',
-            'target': 'new',
-            'type': 'ir.actions.act_window',
-            'context': {'default_name': self.installment_rel_id.std_id,
-                        'default_origin': 'Brokerage Invoice',
-                        'default_type': 'out_invoice',
-                        'default_account_id': self.installment_rel_id.selected_proposal.Company.property_account_receivable_id.id,
-                        'default_partner_id': self.installment_rel_id.selected_proposal.Company.id,
-                        'default_invoice_line_ids':[(0, 0, {
-                                            'name': self.installment_rel_id.selected_proposal.product_pol.product_name,
-                                            'account_id': self.installment_rel_id.selected_proposal.product_pol.income_account.id,
-                                            'price_unit': self.amount,
-                                            'quantity': 1.0,
-                                            'sale_line_ids': False,
-                                            'invoice_line_tax_ids': False,
-                                            'account_analytic_id': False,
-                                        })],},
-            'flags': {'tree': {'action_buttons': True}, 'form': {'action_buttons': True}, 'action_buttons': True},
-        }
-
-    @api.multi
-    def create_commission_bills(self):
-        bill_obj = self.env['account.invoice']
-        comm=self.installment_rel_id.share_policy_rel_ids
-        for record in comm:
-            bill = bill_obj.create({
-                'name': self.installment_rel_id.std_id,
-                'origin': 'Commission Bill',
-                'type': 'out_invoice',
-                'reference': False,
-                'account_id': record.agent.property_account_receivable_id.id,
-                'partner_id': record.agent.id,
-                'partner_shipping_id': False,
-                'invoice_line_ids': [(0, 0, {
-                    'name': self.installment_rel_id.selected_proposal.product_pol.product_name,
-                    'account_id': self.installment_rel_id.selected_proposal.product_pol.expense_account.id,
-                    'price_unit': record.amount,
-                    'quantity': 1.0,
-                    'discount': 0.0,
-                    'uom_id': False,
-                    'sale_line_ids': False,
-                    'invoice_line_tax_ids': False,
-                    'account_analytic_id': False,
-                })],
-            })
-            return bill
-
 
 class Layers(models.Model):
     _name = "layers.layer"
