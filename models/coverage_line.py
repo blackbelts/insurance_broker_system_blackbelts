@@ -22,6 +22,7 @@ class Covers(models.Model):
     net_premium=fields.Float('Net Premium')
     check=fields.Boolean(related='covers.readonly')
 
+
     @api.onchange('proposal_id')
     def onchange_proposal_id(self):
         if self.covers_crm :
@@ -32,15 +33,20 @@ class Covers(models.Model):
         if self.covers_crm:
             return {'domain': {'risk_id_covers': [('id', 'in', self.covers_crm.objectrisks.ids)]}}
 
+
     @api.onchange('covers')
     def onchange_covers(self):
             if self.covers:
                self.sum_insured=self.covers.defaultvalue
+               self.net_premium = self.sum_insured
 
     @api.onchange('rate')
     def compute_premium(self):
-        if self.covers:
+        if self.covers and self.rate:
                self.net_premium=(self.sum_insured*self.rate)/100
+
+
+
 
 
 

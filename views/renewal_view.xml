@@ -11,6 +11,7 @@
                     <sheet>
                         <group string="renewal">
                             <field name="old_number"/>
+                            <field name="last_policy" invisible="1"/>
                             <field name="new_number"/>
                             <field name="issue_date"/>
                             <field name="start_date"/>
@@ -18,6 +19,11 @@
                         </group>
 
                     </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread" options="{'post_refresh': 'recipients'}"/>
+                   </div>
                 </form>
             </field>
         </record>

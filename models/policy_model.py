@@ -8,7 +8,7 @@ from odoo.exceptions import UserError
 
 class PolicyBroker(models.Model):
     _name = "policy.broker"
-    _rec_name = "std_id"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     # @api.multi
     # def show_claim(self):
@@ -91,6 +91,39 @@ class PolicyBroker(models.Model):
 
             return res
 
+    @api.multi
+    def send_mail_template_policy(self):
+        # Find the e-mail template
+        self.ensure_one()
+        ir_model_data = self.env['ir.model.data']
+        template_id = self.env.ref('insurance_broker_system_blackbelts.policy_email_template')
+        try:
+            compose_form_id = ir_model_data.get_object_reference('mail', 'email_compose_message_wizard_form')[1]
+        except ValueError:
+            compose_form_id = False
+        ctx = {
+            'default_model': 'policy.broker',
+            'default_res_id': self.ids[0],
+            'default_use_template': bool(template_id.id),
+            'default_template_id': template_id.id,
+            'default_composition_mode': 'comment',
+            'mark_so_as_sent': True,
+            # 'custom_layout': "sale.mail_template_data_notification_email_sale_order",
+            'proforma': self.env.context.get('proforma', False),
+            'force_email': True
+        }
+
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'mail.compose.message',
+            'views': [(compose_form_id, 'form')],
+            'view_id': compose_form_id,
+            'target': 'new',
+            'context': ctx,
+        }
+
 
 
 
@@ -153,6 +186,10 @@ class PolicyBroker(models.Model):
         for record in self:
             record.check_item = record.line_of_bussines.object
 
+    @api.multi
+    def print_policy(self):
+        return self.env.ref('insurance_broker_system_blackbelts.policy_report').report_action(self)
+
 
     @api.multi
     @api.constrains('share_policy_rel_ids')
@@ -165,28 +202,28 @@ class PolicyBroker(models.Model):
         if total > 100:
             raise ValidationError("Your share percentage must be under percentage")
 
-    @api.multi
-    @api.onchange('bool')
-    def setcovers_veh(self):
-        ids = self.env['insurance.product.coverage'].search(
-            [('product_id', '=', self.product_policy.id)])
-        print(ids)
-        if self.bool:
-            print('xxx')
-            for record in self.new_risk_ids:
-                 for rec in ids:
-                     print('i enter')
-                     record.name_cover_risk_ids =(0, 0, {
-                         "name": rec.Name,
-                         "sum_insure": rec.defaultvalue,
-                         "check": rec.readonly,
-                         # "rate": rec.product_id.name_cover_ids.covers_rel_ids.rate,
-                         "net_perimum": rec.readonly and rec.defaultvalue
-                     })
+    # @api.multi
+    # @api.onchange('bool')
+    # def setcovers_veh(self):
+    #     ids = self.env['insurance.product.coverage'].search(
+    #         [('product_id', '=', self.product_policy.id)])
+    #     print(ids)
+    #     if self.bool:
+    #         print('xxx')
+    #         for record in self.new_risk_ids:
+    #              for rec in ids:
+    #                  print('i enter')
+    #                  record.name_cover_risk_ids =(0, 0, {
+    #                      "name": rec.Name,
+    #                      "sum_insure": rec.defaultvalue,
+    #                      "check": rec.readonly,
+    #                      # "rate": rec.product_id.name_cover_ids.covers_rel_ids.rate,
+    #                      "net_perimum": rec.readonly and rec.defaultvalue
+    #                  })
 
 
     bool = fields.Boolean()
-    edit_number = fields.Integer(string="Endorsement Number", readonly=True)
+    edit_number = fields.Integer(string="Endorsement Number")
     edit_decr = fields.Text('Endorsement Description', readonly=True)
 
 
@@ -198,7 +235,7 @@ class PolicyBroker(models.Model):
 
     std_id = fields.Char(string="Policy Number" ,required=True)
     issue_date = fields.Date(string="Issue Date")
-    start_date = fields.Date(string="Effective From", required=True)
+    start_date = fields.Date(string="Effective From")
     end_date = fields.Date(string="Effective To")
 
 
@@ -228,9 +265,6 @@ class PolicyBroker(models.Model):
     ins_type = fields.Selection([('Individual', 'Individual'),
                                  ('Group', 'Group'), ],
                                 'I&G', track_visibility='onchange')
-    # policy_dur = fields.Selection([('Every 6 Months', 'Every 6 Months'),
-    #                                ('Every Year', 'Every Year'), ],
-    #                               'Policy Duration', track_visibility='onchange')
     line_of_bussines = fields.Many2one('insurance.line.business', string='Line of business',
                                        domain="[('insurance_type','=',insurance_type)]")
 
@@ -240,13 +274,13 @@ class PolicyBroker(models.Model):
 
 
     commision = fields.Float(string="Basic Brokerage", compute="_compute_brokerage")
-    com_commision = fields.Float(string="Complementary  Brokerage", compute="_compute_com_commision")
-    fixed_commision = fields.Float(string="Fixed Brokerage", compute="_compute_fixed_commision")
-    earl_commision = fields.Float(string="Early Collection" , compute="_compute_earl_commision")
-    total_commision = fields.Float(string="total Brokerage", compute="_compute_sum")
+    com_commision = fields.Float(string="Complementary  Brokerage", compute="_compute_brokerage")
+    fixed_commision = fields.Float(string="Fixed Brokerage", compute="_compute_brokerage")
+    earl_commision = fields.Float(string="Early Collection" , compute="_compute_brokerage")
+    total_commision = fields.Float(string="total Brokerage", compute="_compute_brokerage")
     new_risk_ids = fields.One2many("new.risks", 'policy_risk_id', string='Risk')
     company = fields.Many2one('res.partner', domain="[('insurer_type','=',1)]", string="Insurer")
-    product_policy = fields.Many2one('insurance.product',domain="[('insurer','=',company)]", string="Product")
+    product_policy = fields.Many2one('insurance.product',domain="[('insurer','=',company),('line_of_bus','=',line_of_bussines)]", string="Product")
     hamda = fields.Many2one("new.risks")
 
     name_cover_rel_ids = fields.One2many("covers.lines","policy_rel_id",string="Covers Details" )
@@ -256,7 +290,13 @@ class PolicyBroker(models.Model):
     checho = fields.Boolean()
     count_claim = fields.Integer(compute="compute_true")
 
-    barnche = fields.Many2one(related="company.insurer_branch", string="Branch")
+    @api.onchange('company')
+    def _onchange_branch(self):
+      if self.company:
+           return {'domain': {'branch': [('setup_id.setup_key','=','branch'),('setup_id.setup_id','=',self.company.name)]}}
+
+    branch = fields.Many2one('insurance.setup.item',string="Branch",domain="[('setup_id.setup_key','=','branch'),('setup_id.setup_id','=',company)]")
+
 
 
 
@@ -283,30 +323,35 @@ class PolicyBroker(models.Model):
     def _compute_brokerage(self):
         for rec in self:
             rec.commision = (rec.product_policy.brokerage.basic_commission * rec.t_permimum) / 100
-
-    @api.multi
-    @api.depends("product_policy")
-    def _compute_com_commision(self):
-        for rec in self:
             rec.com_commision = (rec.product_policy.brokerage.complementary_commission * rec.t_permimum) / 100
-
-    @api.multi
-    @api.depends("product_policy")
-    def _compute_earl_commision(self):
-        for rec in self:
-                rec.earl_commision = (rec.product_policy.brokerage.early_collection * rec.t_permimum) / 100
+            rec.earl_commision = (rec.product_policy.brokerage.early_collection * rec.t_permimum) / 100
+            rec.fixed_commision = (rec.product_policy.brokerage.fixed_commission * rec.t_permimum) / 100
+            rec.total_commision = rec.commision + rec.com_commision + rec.fixed_commision + rec.earl_commision
 
 
-    @api.multi
-    @api.depends("product_policy")
-    def _compute_fixed_commision(self):
-        for rec in self:
-                rec.fixed_commision = (rec.product_policy.brokerage.fixed_commission * rec.t_permimum) / 100
-
-    @api.multi
-    def _compute_sum(self):
-        for rec in self:
-            rec.total_commision = rec.commision + rec.com_commision + rec.fixed_commision
+    # @api.multi
+    # @api.depends("product_policy")
+    # def _compute_com_commision(self):
+    #     for rec in self:
+    #         rec.com_commision = (rec.product_policy.brokerage.complementary_commission * rec.t_permimum) / 100
+    #
+    # @api.multi
+    # @api.depends("product_policy")
+    # def _compute_earl_commision(self):
+    #     for rec in self:
+    #             rec.earl_commision = (rec.product_policy.brokerage.early_collection * rec.t_permimum) / 100
+    #
+    #
+    # @api.multi
+    # @api.depends("product_policy")
+    # def _compute_fixed_commision(self):
+    #     for rec in self:
+    #             rec.fixed_commision = (rec.product_policy.brokerage.fixed_commission * rec.t_permimum) / 100
+    #
+    # @api.multi
+    # def _compute_sum(self):
+    #     for rec in self:
+    #         rec.total_commision = rec.commision + rec.com_commision + rec.fixed_commision
 
     @api.multi
     @api.depends("salesperson","onlayer","t_permimum")
@@ -359,25 +404,37 @@ class PolicyBroker(models.Model):
                                       ('approve', 'Approve'), ],
                                      'Status', required=True, default='pending')
     hide_inv_button = fields.Boolean(copy=False)
-    # invoice_ids = fields.One2many('account.invoice', 'insurance_id', string='Invoices', readonly=True)
+    invoice_ids = fields.One2many('account.invoice', 'insurance_id', string='Invoices', readonly=True)
+
+    _sql_constraints = [
+        ('std_id_unique', 'unique(std_id,edit_number)', 'Policy Number  already exists!')]
+
+
+    @api.multi
+    def name_get(self):
+        result = []
+        for s in self:
+            name = s.std_id + ' , ' +str(s.edit_number)
+            result.append((s.id, name))
+        return result
 
     @api.multi
     def confirm_policy(self):
-        if self.term:
+        if self.term and self.customer and self.line_of_bussines and self.company:
             self.policy_status = 'approve'
             self.hide_inv_button = True
         else:
-            raise UserError(_("Payment Frequency should be Selected"))
+            raise UserError(_("Customer ,Line of Bussines or Company  should be Selected"))
 
     @api.multi
     def create_invoices(self):
         for record in self.rella_installment_id:
             if record.amount !=0:
-                self.env['account.invoice'].create({
+                cust_invoice=self.env['account.invoice'].create({
                     'type': 'out_invoice',
                     'partner_id': self.customer.id,
                     'user_id': self.env.user.id,
-                    # 'insurance_id': self.id,
+                    'insurance_id': self.id,
                     'origin': self.policy_number,
                     'invoice_line_ids': [(0, 0, {
                         'name': 'Invoice For Insurance',
@@ -386,59 +443,65 @@ class PolicyBroker(models.Model):
                         'account_id': self.line_of_bussines.income_account.id,
                     })],
                 })
+                cust_invoice.action_invoice_open()
 
-            self.env['account.invoice'].create({
-                'type': 'in_invoice',
-                'partner_id': self.company.id,
-                'user_id': self.env.user.id,
-                # 'insurance_id': self.id,
-                'origin': self.policy_number,
-                'invoice_line_ids': [(0, 0, {
-                    'name': 'Bill For Insurance',
-                    'quantity': 1,
-                    'price_unit': record.amount,
-                    'account_id': self.line_of_bussines.expense_account.id,
-                })],
-            })
+                ins_bill=self.env['account.invoice'].create({
+                    'type': 'in_invoice',
+                    'partner_id': self.company.id,
+                    'user_id': self.env.user.id,
+                    'insurance_id': self.id,
+                    'origin': self.policy_number,
+                    'invoice_line_ids': [(0, 0, {
+                        'name': 'Bill For Insurance',
+                        'quantity': 1,
+                        'price_unit': record.amount,
+                        'account_id': self.line_of_bussines.expense_account.id,
+                    })],
+                })
+                ins_bill.action_invoice_open()
+
         for record in self.share_policy_rel_ids:
-            self.env['account.invoice'].create({
-                'type': 'in_invoice',
-                'partner_id': record.agent.id,
+            if record.amount !=0:
+                comm_bill = self.env['account.invoice'].create({
+                    'type': 'in_invoice',
+                    'partner_id': record.agent.id,
+                    'user_id': self.env.user.id,
+                    'insurance_id': self.id,
+                    'origin': self.policy_number,
+                    'invoice_line_ids': [(0, 0, {
+                        'name': 'Commission Insurance',
+                        'quantity': 1,
+                        'price_unit': record.amount,
+                        'account_id': self.line_of_bussines.expense_account.id,
+                    })],
+                })
+                comm_bill.action_invoice_open()
+
+        if self.total_commision !=0:
+            brok_invoice = self.env['account.invoice'].create({
+                'type': 'out_invoice',
+                'partner_id': 1,
                 'user_id': self.env.user.id,
-                # 'insurance_id': self.id,
+                'insurance_id': self.id,
                 'origin': self.policy_number,
                 'invoice_line_ids': [(0, 0, {
-                    'name': 'Commission Insurance',
+                    'name': 'Brokerage Insurance',
                     'quantity': 1,
-                    'price_unit': record.amount,
+                    'price_unit': self.total_commision,
                     'account_id': self.line_of_bussines.expense_account.id,
                 })],
             })
+            brok_invoice.action_invoice_open()
 
-        self.env['account.invoice'].create({
-            'type': 'out_invoice',
-            'partner_id': 1,
-            'user_id': self.env.user.id,
-            # 'insurance_id': self.id,
-            'origin': self.policy_number,
-            'invoice_line_ids': [(0, 0, {
-                'name': 'Brokerage Insurance',
-                'quantity': 1,
-                'price_unit': self.total_commision,
-                'account_id': self.line_of_bussines.expense_account.id,
-            })],
-        })
         self.hide_inv_button = False
 
 class AccountInvoiceRelate(models.Model):
     _inherit = 'account.invoice'
 
-    # insurance_id = fields.Many2one('policy.broker', string='Insurance')
-    # claim_id = fields.Many2one('claim', string='Insurance')
+    insurance_id = fields.Many2one('policy.broker', string='Insurance')
 
 class Extra_Covers(models.Model):
     _name = "covers.lines"
-    _rec_name="name1"
 
 
 
@@ -456,6 +519,19 @@ class Extra_Covers(models.Model):
     rate = fields.Float(string="Rate")
     net_perimum = fields.Float(string="Net Perimum")
     policy_rel_id = fields.Many2one("policy.broker")
+
+
+    _sql_constraints = [
+        ('cover_unique', 'unique(policy_rel_id,riskk,name1)', 'Cover already exists!')]
+
+
+    @api.multi
+    def name_get(self):
+        result = []
+        for s in self:
+            name = str(s.name1.Name) + ' , ' +str(s.riskk.risk)
+            result.append((s.id, name))
+        return result
 
 
     @api.onchange("check")
@@ -551,12 +627,9 @@ class InstallmentClass(models.Model):
     date = fields.Date(string="Date")
     # enddate = fields.Date(string="End of premium")
     amount = fields.Float(string="Amount")
-    paid = fields.Selection([('inv', 'Paid Invoice'),
-                            ('bill', 'Paid Bill'),
-                            ('brok', 'Paid Brokerage'),
-                             ('comm', 'Paid Commission'),
-                             ('draft', 'Draft'),],
-                           'Paid Status',defualt='draft')
+    state = fields.Selection([('open', 'Open'),
+                             ('paid', 'Paid')],
+                           'State',defualt='open')
     installment_rel_id = fields.Many2one("policy.broker")
 
 class Layers(models.Model):

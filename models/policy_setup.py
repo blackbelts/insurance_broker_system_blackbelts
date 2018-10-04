@@ -3,25 +3,30 @@ from odoo.exceptions import ValidationError
 
 class Policy_Info(models.Model):
     _name ="insurance.line.business"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'line_of_business'
 
     insurance_type = fields.Selection([('life', 'Life'),
-                          ('p&c', 'P&C'),
-                          ('health', 'Health'), ],
-                         'Insured Type', track_visibility='onchange', required=True)
+                                       ('p&c', 'P&C'),
+                                       ('health', 'Health'), ],
+                                      'Insured Type', track_visibility='onchange', required=True)
     line_of_business = fields.Char(string='Line of Business', required=True)
     object= fields.Selection([('person', 'Person'),
-                          ('vehicle', 'Vehicle'),
-                          ('cargo', 'Cargo'),
-                          ('location', 'Location'),],
-                         'Insured Object', track_visibility='onchange', required=True)
+                              ('vehicle', 'Vehicle'),
+                              ('cargo', 'Cargo'),
+                              ('location', 'Location'),],
+                             'Insured Object', track_visibility='onchange', required=True)
     desc = fields.Char(string='Description')
-    income_account=fields.Many2one('account.account','Income Account')
-    expense_account = fields.Many2one('account.account','Expense Account')
+    income_account=fields.Many2one('account.account','Income Account',required=True)
+    expense_account = fields.Many2one('account.account','Expense Account',required=True)
+
+    _sql_constraints = [
+        ('business_unique', 'unique(insurance_type,line_of_business,object)', 'Line of Business already exists!')]
 
 
 class Product(models.Model):
     _name='insurance.product'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'product_name'
 
     product_name=fields.Char('Product Name',required=True)
@@ -32,6 +37,9 @@ class Product(models.Model):
     commision_id = fields.One2many("commision.setup","policy_relation_id")
     claim_action=fields.One2many('product.claim.action','product')
     name_cover_id = fields.Many2one("name.cover")
+
+    _sql_constraints = [
+        ('product_unique', 'unique(product_name,line_of_bus)', 'Product already exists!')]
 
 class claimAction(models.Model):
     _name='product.claim.action'
@@ -59,6 +67,10 @@ class coverage(models.Model):
     product_id=fields.Many2one('insurance.product')
     lop_id=fields.Many2one('insurance.line.business',string='Line of Business')
 
+    _sql_constraints = [
+        ('Name_unique', 'unique(Name)', 'Cover Name already exists!')]
+
+
 
 class Brokerage(models.Model):
     _name='insurance.product.brokerage'
@@ -83,22 +95,32 @@ class Brokerage(models.Model):
 
 class insuranceSetup(models.Model):
     _name = 'insurance.setup'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    setup_key=fields.Selection([('closs', 'CLoss'),
-                          ('nloss', 'NLoss'),
-                          ('goods', 'Goods'),
-                          ('setltype', 'SetlType'),
-                          ('state', 'State'),
-                          ('clmitem', 'CLMItem'),],
-                         'KEY', track_visibility='onchange', required=True)
+    setup_key=fields.Selection([('closs', 'CLOSS'),
+                                ('nloss', 'NLOSS'),
+                                ('goods', 'GOODS'),
+                                ('setltype', 'SETTYPE'),
+                                ('state', 'STATE'),
+                                ('clmitem', 'CLMITEM'),
+                                ('branch', 'INSBRANCH'),
+                                ('vehicletype', 'VEHICLETYPE'),
+                                ('model', 'MODEL'),],
+                               'KEY', track_visibility='onchange', required=True)
     setup_id=fields.Char(string='ID')
     setup_item=fields.One2many('insurance.setup.item','setup_id',string='List Items')
+
+    _sql_constraints = [
+        ('setup_id_unique', 'unique(setup_key,setup_id)', 'ID already exists!')]
 
 class insuranceSetupItem(models.Model):
     _name = 'insurance.setup.item'
 
     name=fields.Char('Item')
     setup_id=fields.Many2one('insurance.setup')
+
+    _sql_constraints = [
+        ('item_unique', 'unique(setup_id,name)', 'Item already exists!')]
 
 
 

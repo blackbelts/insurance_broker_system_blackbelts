@@ -12,6 +12,8 @@
                         <group>
 
                             <field name="number_policy"/>
+                             <field name="last_policy" invisible="1"/>
+
                             <!--<field name="newone"/>-->
                             <field name="number_edit"/>
                             <field name="reasonedit"/>
@@ -20,6 +22,11 @@
                             <field name="end_date"/>
                         </group>
                     </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread" options="{'post_refresh': 'recipients'}"/>
+                    </div>
                 </form>
             </field>
         </record>

@@ -3,15 +3,15 @@
         <!---edit opportuinty-->
 
 
-        <record model="ir.ui.view" id="crm__lead_form_view_sale">
-            <field name="model">crm.lead</field>
-            <field name="inherit_id" ref="sale_crm.crm_case_form_view_oppor"/>
-            <field name="arch" type="xml">
-                <xpath expr="//button[@name='384']" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </xpath>
-            </field>
-        </record>
+        <!--<record model="ir.ui.view" id="crm__lead_form_view_sale">-->
+        <!--<field name="model">crm.lead</field>-->
+        <!--<field name="inherit_id" ref="sale_crm.crm_case_form_view_oppor"/>-->
+        <!--<field name="arch" type="xml">-->
+        <!--<xpath expr="//button[@name='384']" position="attributes">-->
+        <!--<attribute name="invisible">1</attribute>-->
+        <!--</xpath>-->
+        <!--</field>-->
+        <!--</record>-->
 
         <record model="ir.ui.view" id="crm__lead_form_view">
             <field name="model">crm.lead</field>
@@ -101,8 +101,13 @@
                             </tree>
                             <form>
                                 <group>
+                                    <field name="risk"/>
+                                    <field name="risk_description" invisible="1"/>
+                                    <field name="risks_crm" invisible="1"/>
+                                    <field name="type_risk" invisible="1"/>
 
                                 </group>
+
                                 <group string="Vehicle" attrs="{'invisible': ['|',('type_risk', '!=', 'vehicle')]}" >
                                     <field name="car_tybe"/>
                                     <field name="motor_cc"/>
@@ -121,13 +126,11 @@
                                     <field name="cargo_type" />
                                     <field name="weight"   />
                                 </group>
-                                <group>
-                                    <field name="risk"/>
-                                    <field name="risk_description" invisible="1"/>
-                                    <field name="risks_crm" invisible="1"/>
-                                    <field name="type_risk" invisible="1"/>
-
+                                <group string="Location"  attrs="{'invisible': ['|',('type_risk', '!=', 'location')]}">
+                                    <field name="address"  />
+                                    <field name="type"  />
                                 </group>
+
 
                             </form>
                         </field>
@@ -172,7 +175,7 @@
                             <field name="product"/>
                             <field name="risk_id_covers"/>
                             <field name="risk_desc"/>
-                            <field name="covers"/>
+                            <field name="covers" />
                             <field name="sum_insured"/>
                             <field name="rate"/>
                             <field name="net_premium"/>
@@ -218,10 +221,6 @@
                     </div>
 
                     <field name="insurance_type"  style="width:30%%;"/>
-                    <field name="LOB"  style="width:30%%;"/>
-                    <field name="ins_type"  style="width:30%%;"/>
-                    <field name="policy_dur" />
-
                 </xpath>
             </field>
         </record>

@@ -3,6 +3,7 @@ from odoo.exceptions import ValidationError
 
 class claimPolicy(models.Model):
     _name ="insurance.claim"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Claim Number', required=True, copy=False, readonly=True, index=True,
                        default=lambda self: _('New'))
@@ -17,12 +18,12 @@ class claimPolicy(models.Model):
     remarks=fields.Char(string='Close/Open Remarks')
     totalloss=fields.Boolean(string='Total Loss')
     totalclaimexp=fields.Float(string='Total Claim Expected')
-    totalsettled=fields.Float(string='Total Settled',compute='_onchange_totalsettled')
-    totalunpaid = fields.Float(string='Total Unpaid',compute='_onchange_total_unpaid')
+    totalsettled=fields.Float(string='Total Settled',compute='_compute_totalsettled')
+    totalunpaid = fields.Float(string='Total Unpaid')
 
     claimstatus=fields.Many2one('insurance.setup.item',string='Claim Status',domain="[('setup_id.setup_key','=','state')]")
-    policy_number = fields.Many2one('policy.broker',string='Policy Number',required=True,domain="[('edit_number','=',False)]")
-    endorsement= fields.Many2one('policy.broker',string='Endorsement Number',domain="['&',('edit_number','!=',False),('std_id','=',related_policy)]")
+    policy_number = fields.Many2one('policy.broker',string='Policy Number',required=True,domain="[('edit_number','=',0)]")
+    endorsement= fields.Many2one('policy.broker',string='Endorsement Number',domain="['&',('edit_number','!=',0),('std_id','=',related_policy)]")
     related_policy=fields.Char(related='policy_number.std_id',store=True,readonly=True)
     customer_policy=fields.Many2one('res.partner',string='Customer',store=True,readonly=True)
     insured=fields.Char(string='Insured',store=True)
@@ -31,20 +32,62 @@ class claimPolicy(models.Model):
     lob = fields.Many2one('insurance.line.business', string='Line of Business', store=True,readonly=True)
     product = fields.Many2one('insurance.product', string='Product', store=True,readonly=True)
     insurer = fields.Many2one('res.partner', string='Insurer', store=True,readonly=True)
-    insurer_branch= fields.Many2one('res.partner',related='insurer.insurer_branch', string='Insurer Branch', store=True,
-                              readonly=True)
+    insurer_branch= fields.Many2one('insurance.setup.item', string='Insurer Branch')
     insurer_contact= fields.Many2one('res.partner',string='Insurer Contact',domain="[('insurer_type','=',1)]")
-    total_paid_amount=fields.Float(string='Total Paid Amount',compute='_onchange_payment_history')
+    total_paid_amount=fields.Float(string='Total Paid Amount',compute='_compute_payment_history')
     settlement_type=fields.Many2one('insurance.setup.item',string='Settlement Type',domain="[('setup_id.setup_key','=','setltype')]")
     settle_history=fields.One2many('settle.history','claimheader',string='Settle History')
     payment_history=fields.One2many('payment.history','header_payment',string='Payment History')
     claim_action=fields.One2many('product.claim.action','claim',related='product.claim_action')
+
+    @api.multi
+    def print_claim(self):
+        return self.env.ref('insurance_broker_system_blackbelts.insurance_claim').report_action(self)
+
+    @api.multi
+    def send_mail_template_claim(self):
+        # Find the e-mail template
+        self.ensure_one()
+        ir_model_data = self.env['ir.model.data']
+        template_id = self.env.ref('insurance_broker_system_blackbelts.claim_email_template')
+        try:
+            compose_form_id = ir_model_data.get_object_reference('mail', 'email_compose_message_wizard_form')[1]
+        except ValueError:
+            compose_form_id = False
+        ctx = {
+            'default_model': 'insurance.claim',
+            'default_res_id': self.ids[0],
+            'default_use_template': bool(template_id.id),
+            'default_template_id': template_id.id,
+            'default_composition_mode': 'comment',
+            'mark_so_as_sent': True,
+            # 'custom_layout': "sale.mail_template_data_notification_email_sale_order",
+            'proforma': self.env.context.get('proforma', False),
+            'force_email': True
+        }
+
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'mail.compose.message',
+            'views': [(compose_form_id, 'form')],
+            'view_id': compose_form_id,
+            'target': 'new',
+            'context': ctx,
+        }
 
     @api.model
     def create(self, vals):
         if vals.get('name', 'New') == 'New':
             vals['name'] = self.env['ir.sequence'].next_by_code('insurance.claim') or 'New'
         return super(claimPolicy, self).create(vals)
+
+    @api.onchange('insurer')
+    def _onchange_insurer_branch(self):
+      if self.insurer:
+           return {'domain': {'insurer_branch': [('setup_id.setup_key','=','branch'),('setup_id.setup_id','=',self.insurer.name)]}}
+
 
     @api.onchange('endorsement','policy_number')
     def _onchange_policy_details(self):
@@ -68,23 +111,25 @@ class claimPolicy(models.Model):
 
     @api.one
     @api.depends('payment_history')
-    def _onchange_payment_history(self):
-        total=0
-        for record in self.payment_history:
-            total+=record.paid_amount
-        self.total_paid_amount=total
+    def _compute_payment_history(self):
+        if self.payment_history:
+            self.total_paid_amount = 0.0
+            for record in self.payment_history:
+                self.total_paid_amount+= record.paid_amount
 
     @api.onchange('total_paid_amount','totalclaimexp')
     def _onchange_total_unpaid(self):
-        self.totalunpaid=self.totalclaimexp - self.total_paid_amount
+        if self.total_paid_amount and self.totalclaimexp:
+            self.totalunpaid = self.totalclaimexp - self.total_paid_amount
+
 
     @api.one
     @api.depends('settle_history')
-    def _onchange_totalsettled(self):
-        total=0
-        for record in self.settle_history:
-            total+=record.sum_insured
-        self.totalsettled=total
+    def _compute_totalsettled(self):
+        if self.settle_history:
+            self.totalsettled = 0.0
+            for record in self.settle_history:
+                self.totalsettled += record.sum_insured
 
 
 class settleHistory(models.Model):
@@ -93,10 +138,10 @@ class settleHistory(models.Model):
     risk_type=fields.Char(related='claimheader.insured',string='Risk Type',readonly=True,store=True)
     risk_id=fields.Many2one('new.risks',string='Risk')
     #Vehicle details
-    vcar_type = fields.Char(related='risk_id.car_tybe',string='Vehicle Type')
+    vcar_type = fields.Many2one(related='risk_id.car_tybe',string='Vehicle Type')
     vmotor_cc = fields.Char(related='risk_id.motor_cc',string="Motor cc")
-    vyear_of_made = fields.Date(related='risk_id.year_of_made',string="Year of Made")
-    vmodel = fields.Char(related='risk_id.model',string="Motor Model")
+    vyear_of_made = fields.Integer(related='risk_id.year_of_made',string="Year of Made")
+    vmodel = fields.Many2one(related='risk_id.model',string="Motor Model")
     vbrande = fields.Char(related='risk_id.Man',string='Vehicle Brande')
     #Person details
     pname = fields.Char(related='risk_id.name',string='Name')
@@ -115,7 +160,7 @@ class settleHistory(models.Model):
     settle_date=fields.Date(string='Settle Date')
     status=fields.Many2one('insurance.setup.item',string='Status',domain="[('setup_id.setup_key','=','state')]")
     claimheader=fields.Many2one('insurance.claim')
-    endorsement_related=fields.Many2one('policy.broker',store=True,readonly=True)
+    endorsement_related=fields.Many2one('policy.broker')
     claim_item=fields.One2many('insurance.claim.item','settle_history',string='Repair/Claim Items')
 
     @api.onchange('claimheader')
@@ -139,10 +184,10 @@ class settleHistory(models.Model):
     @api.one
     @api.depends('claim_item')
     def _onchange_settle_amount(self):
-        total=0
-        for record in self.claim_item:
-            total+=record.amount
-        self.settle_amount=total
+        if self.claim_item:
+            self.settle_amount=0.0
+            for record in self.claim_item:
+                self.settle_amount += record.amount
 
 
 class paymentHistory(models.Model):
