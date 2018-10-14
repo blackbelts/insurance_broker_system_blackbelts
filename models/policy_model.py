@@ -60,15 +60,16 @@ class PolicyBroker(models.Model):
                 records_risks.append(rec.id)
 
             recordproposal = self.env['proposal.opp.bb'].search([('id', '=', lead.selected_coverage.id)])
-            print(recordproposal.proposal_id)
-            recordcovers = self.env['coverage.line'].search([('proposal_id', '=', recordproposal.proposal_id)])
+            print(recordproposal.id)
+            recordcovers = self.env['coverage.line'].search([('proposal_id', '=', recordproposal.id)])
 
             records_covers = []
             for rec in recordcovers:
                 coversline = (
                     0, 0,
-                    {'riskk': rec.risk_id_covers.id, 'risk_description': rec.risk_desc, 'insurerd': rec.insurer.id,
+                    {'riskk': rec.risk_id_covers.id ,'insurerd': rec.insurer.id,
                      'prod_product': rec.product.id, 'name1': rec.covers.id, 'sum_insure': rec.sum_insured,
+                     'deductible' : rec.deductible, 'limitone' :rec.limitone ,'limittotal': rec.limittotal ,
                      'net_perimum': rec.net_premium, 'rate': rec.rate})
                 print(coversline)
                 records_covers.append(coversline)
@@ -424,7 +425,7 @@ class PolicyBroker(models.Model):
             self.policy_status = 'approve'
             self.hide_inv_button = True
         else:
-            raise UserError(_("Customer ,Line of Bussines or Company  should be Selected"))
+            raise UserError(_("Customer ,Line of Bussines , Company or Payment Frequency  should be Selected"))
 
     @api.multi
     def create_invoices(self):
@@ -433,11 +434,16 @@ class PolicyBroker(models.Model):
                 cust_invoice=self.env['account.invoice'].create({
                     'type': 'out_invoice',
                     'partner_id': self.customer.id,
+                    'name': 'customer_invoice',
                     'user_id': self.env.user.id,
                     'insurance_id': self.id,
                     'origin': self.policy_number,
+                    'insured_type':self.insurance_type,
+                    'insured_lOB': self.line_of_bussines.id,
+                    'insured_insurer': self.company.id,
+                    'insured_product': self.product_policy.id,
                     'invoice_line_ids': [(0, 0, {
-                        'name': 'Invoice For Insurance',
+                        'name': 'Customer Invoice',
                         'quantity': 1,
                         'price_unit': record.amount,
                         'account_id': self.line_of_bussines.income_account.id,
@@ -448,11 +454,16 @@ class PolicyBroker(models.Model):
                 ins_bill=self.env['account.invoice'].create({
                     'type': 'in_invoice',
                     'partner_id': self.company.id,
+                    'name': 'insurer_bill',
                     'user_id': self.env.user.id,
                     'insurance_id': self.id,
                     'origin': self.policy_number,
+                    'insured_type':self.insurance_type,
+                    'insured_lOB': self.line_of_bussines.id,
+                    'insured_insurer': self.company.id,
+                    'insured_product': self.product_policy.id,
                     'invoice_line_ids': [(0, 0, {
-                        'name': 'Bill For Insurance',
+                        'name': 'Insurer Bill',
                         'quantity': 1,
                         'price_unit': record.amount,
                         'account_id': self.line_of_bussines.expense_account.id,
@@ -465,11 +476,16 @@ class PolicyBroker(models.Model):
                 comm_bill = self.env['account.invoice'].create({
                     'type': 'in_invoice',
                     'partner_id': record.agent.id,
+                    'name': 'commission',
                     'user_id': self.env.user.id,
                     'insurance_id': self.id,
                     'origin': self.policy_number,
+                    'insured_type':self.insurance_type,
+                    'insured_lOB': self.line_of_bussines.id,
+                    'insured_insurer': self.company.id,
+                    'insured_product': self.product_policy.id,
                     'invoice_line_ids': [(0, 0, {
-                        'name': 'Commission Insurance',
+                        'name': 'Commission',
                         'quantity': 1,
                         'price_unit': record.amount,
                         'account_id': self.line_of_bussines.expense_account.id,
@@ -481,11 +497,16 @@ class PolicyBroker(models.Model):
             brok_invoice = self.env['account.invoice'].create({
                 'type': 'out_invoice',
                 'partner_id': 1,
+                'name': 'brokerage',
                 'user_id': self.env.user.id,
                 'insurance_id': self.id,
                 'origin': self.policy_number,
+                'insured_type':self.insurance_type,
+                'insured_lOB':self.line_of_bussines.id,
+                'insured_insurer':self.company.id,
+                'insured_product':self.product_policy.id,
                 'invoice_line_ids': [(0, 0, {
-                    'name': 'Brokerage Insurance',
+                    'name': 'Brokerage',
                     'quantity': 1,
                     'price_unit': self.total_commision,
                     'account_id': self.line_of_bussines.expense_account.id,
@@ -499,6 +520,11 @@ class AccountInvoiceRelate(models.Model):
     _inherit = 'account.invoice'
 
     insurance_id = fields.Many2one('policy.broker', string='Insurance')
+    insured_type =fields.Char(string='Type')
+    insured_lOB = fields.Many2one('insurance.line.business',string='LOB')
+    insured_insurer = fields.Many2one('res.partner',string='Insurer')
+    insured_product = fields.Many2one('insurance.product',string='Product')
+
 
 class Extra_Covers(models.Model):
     _name = "covers.lines"
@@ -507,7 +533,7 @@ class Extra_Covers(models.Model):
 
 
     riskk = fields.Many2one("new.risks", "Risk ID")
-    risk_description = fields.Text(string="Risk Description")
+    # risk_description = fields.Text(string="Risk Description")
     #
     insurerd = fields.Many2one(related="policy_rel_id.company")
     prod_product = fields.Many2one(related="policy_rel_id.product_policy",domain="[('insurer','=',insurerd)]")
@@ -516,6 +542,9 @@ class Extra_Covers(models.Model):
     check = fields.Boolean(related="name1.readonly")
 
     sum_insure = fields.Float(string="SI")
+    deductible = fields.Integer('Deductible')
+    limitone=fields.Integer('Limit in One')
+    limittotal=fields.Integer('Limit in Total')
     rate = fields.Float(string="Rate")
     net_perimum = fields.Float(string="Net Perimum")
     policy_rel_id = fields.Many2one("policy.broker")
@@ -559,6 +588,9 @@ class Extra_Covers(models.Model):
     def onchange_covers(self):
         if self.name1:
             self.sum_insure = self.name1.defaultvalue
+            self.deductible = self.name1.deductible
+            self.limitone = self.name1.limitone
+            self.limittotal = self.name1.limittotal
 
     @api.onchange('rate')
     def compute_premium(self):

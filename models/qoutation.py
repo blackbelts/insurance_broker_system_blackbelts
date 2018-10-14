@@ -20,9 +20,17 @@ class crm_leads(models.Model):
     ins_type = fields.Selection([('Individual', 'Individual'),
                                  ('Group', 'Group'),],
                                 'insured type', track_visibility='onchange')
-    policy_dur = fields.Selection([('Every 6 Months', 'Every 6 Months'),
-                                   ('Every Year', 'Every Year'), ],
-                                  'Policy Duration', track_visibility='onchange')
+    duration_no = fields.Integer('Policy Duration Number')
+    duration_type =fields.Selection([('day', 'Day'),
+                                     ('month', 'Month'),
+                                     ('year', 'Year'),],
+                                    'Policy Duration Type',track_visibility='onchange')
+    term=fields.Char(string='Term',compute='_compute_term',force_save=True)
+
+    @api.one
+    def _compute_term(self):
+        self.term=str(self.duration_no)+'-'+str(self.duration_type)
+
     LOB = fields.Many2one('insurance.line.business', string='Line of business', domain="[('insurance_type','=',insurance_type)]")
 
     oppor_type = fields.Char(
@@ -170,7 +178,7 @@ class crm_leads(models.Model):
 
             # , 'default_objectperson':records_person ,'default_objectcar':records_car},
 
-        # # write tree and form view id here.
+        # #  tree and form view id here.
         # proposal_car_tree  form_proposal
         # view = self.env.ref('crm__black_belts.proposal_car_tree')
         # form_view = self.env.ref('insurance_broker_blackbelts.my_view_for_policy_form_kmlo1')
@@ -287,19 +295,7 @@ class crm_leads_currency(models.Model):
     # currency_type=fields.One2many('crm.lead','currency_type ',string='currency')
     c = fields.One2many('crm.lead', 'c_type', string='currency')
 
-class partner(models.Model):
-    _inherit='res.partner'
-    # name=fields.Char(readonly=True,required=False)
-    DOB=fields.Date('Date of Birth')
-    martiual_status = fields.Selection([('Single', 'Single'),
-                                        ('Married', 'Married'),],
-                                       'marital status', track_visibility='onchange')
-    last_time_insure = fields.Date('last_time_insure')
 
-    C_industry = fields.Selection([('Software', 'Software'),
-                                   ('Engineering', 'Engineering'), ],
-                                  'Industry', track_visibility='onchange')
-    holding=fields.Many2one('res.partner',string='Holding Company')
 
 
 
