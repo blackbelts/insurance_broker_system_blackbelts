@@ -70,9 +70,13 @@
                 <field name="tag_ids" position="after">
                     <field name="policy_number"   />
                     <field name="ins_type"/>
-                    <field name="policy_dur"  />
-                </field>
+                    <div class="o_row">
+                        <field name="duration_no"/>
+                        <field name="duration_type"/>
+                    </div>
 
+
+                </field>
 
 
                 <xpath expr="/form/sheet/group[1]" position="after" >
@@ -330,22 +334,22 @@
             <field name="view_mode">kanban,tree,graph,pivot,form,calendar</field>
             <field name="domain">[('type','=','opportunity')]</field>
             <field name="context">{
-                    'default_type': 'opportunity',
-                    'default_user_id': uid
+                'default_type': 'opportunity',
+                'default_user_id': uid
                 }
             </field>
         </record>
         <record model="ir.actions.act_window.view" id="action_ibs_crm_lead_tree">
-             <field name="sequence" eval="1"/>
-             <field name="view_mode">tree</field>
-             <field name="view_id" ref="ibs_crm_case_tree_view_oppor"/>
-             <field name="act_window_id" ref="ibs_crm_lead_opportunities"/>
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="ibs_crm_case_tree_view_oppor"/>
+            <field name="act_window_id" ref="ibs_crm_lead_opportunities"/>
         </record>
         <record model="ir.actions.act_window.view" id="action_ibs_crm_lead_form">
-             <field name="sequence" eval="1"/>
-             <field name="view_mode">form</field>
-             <field name="view_id" ref="crm__lead_form_view"/>
-             <field name="act_window_id" ref="ibs_crm_lead_opportunities"/>
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="crm__lead_form_view"/>
+            <field name="act_window_id" ref="ibs_crm_lead_opportunities"/>
         </record>
 
     </data>
