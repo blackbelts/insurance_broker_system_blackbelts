@@ -165,7 +165,7 @@ class PolicyBroker(models.Model):
     #     self.selected_proposal = [(6, 0, ids)]
 
     @api.onchange('line_of_bussines')
-    def _compute_comment(self):
+    def _compute_comment_policy(self):
         for record in self:
             record.check_item = record.line_of_bussines.object
 
@@ -247,9 +247,9 @@ class PolicyBroker(models.Model):
 
     customer = fields.Many2one('res.partner', 'Customer')
 
-    insurance_type = fields.Selection([('life', 'Life'),
-                                       ('p&c', 'P&C'),
-                                       ('health', 'Health'), ],
+    insurance_type = fields.Selection([('Life', 'Life'),
+                                       ('P&C', 'P&C'),
+                                       ('Health', 'Health'), ],
                                       'Insurance Type', track_visibility='onchange')
     ins_type = fields.Selection([('Individual', 'Individual'),
                                  ('Group', 'Group'), ],
@@ -274,7 +274,7 @@ class PolicyBroker(models.Model):
 
     name_cover_rel_ids = fields.One2many("covers.lines","policy_rel_id",string="Covers Details" )
     currency_id = fields.Many2one("res.currency","Currency Code")
-    benefit =fields.Char("Beneifciary")
+    benefit =fields.Char("Beneficiary")
 
     checho = fields.Boolean()
     count_claim = fields.Integer(compute="compute_true")
@@ -390,7 +390,7 @@ class PolicyBroker(models.Model):
     # nohamed saber code
 
     policy_status = fields.Selection([('pending', 'Pending'),
-                                      ('approve', 'Approve'), ],
+                                      ('approved', 'Approved'), ],
                                      'Status', required=True, default='pending')
     hide_inv_button = fields.Boolean(copy=False)
     invoice_ids = fields.One2many('account.invoice', 'insurance_id', string='Invoices', readonly=True)
@@ -414,7 +414,7 @@ class PolicyBroker(models.Model):
     @api.multi
     def confirm_policy(self):
         if self.term and self.customer and self.line_of_bussines and self.company:
-            self.policy_status = 'approve'
+            self.policy_status = 'approved'
             self.hide_inv_button = True
         else:
             raise UserError(_("Customer ,Line of Bussines , Company or Payment Frequency  should be Selected"))
@@ -528,7 +528,7 @@ class Extra_Covers(models.Model):
 
 
 
-    riskk = fields.Many2one("new.risks", "Risk ID")
+    riskk = fields.Many2one("new.risks", "Risk")
     # risk_description = fields.Text(string="Risk Description")
     #
     insurerd = fields.Many2one(related="policy_rel_id.company")
@@ -588,7 +588,7 @@ class Extra_Covers(models.Model):
             self.limitone = self.name1.limitone
             self.limittotal = self.name1.limittotal
 
-    @api.onchange('rate')
+    @api.onchange('rate','sum_insure')
     def compute_premium(self):
         if self.name1:
             self.net_perimum = (self.sum_insure * self.rate) / 100

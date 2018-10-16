@@ -80,11 +80,11 @@
 
                     <!--<td></td>-->
                     <!--<div class="o_row">-->
-                        <!--&lt;!&ndash;<label string="Term"/>&ndash;&gt;-->
-                        <!--<label string="duration"/>-->
-                        <!--<field name="duration_no"/>-->
-                        <!--<label string="type"/>-->
-                        <!--<field name="duration_type"/>-->
+                    <!--&lt;!&ndash;<label string="Term"/>&ndash;&gt;-->
+                    <!--<label string="duration"/>-->
+                    <!--<field name="duration_no"/>-->
+                    <!--<label string="type"/>-->
+                    <!--<field name="duration_type"/>-->
                     <!--</div>-->
 
 
@@ -130,8 +130,11 @@
                                     <field name="car_tybe" widget="selection"/>
                                     <field name="Man" widget="selection"/>
                                     <field name="model" widget="selection"/>
-                                    <field name="year_of_made"/>
                                     <field name="motor_cc"/>
+                                    <field name="year_of_made"/>
+                                    <field name="plate_no"/>
+                                    <field name="chassis_no"/>
+                                    <field name="engine"/>
                                 </group>
                                 <group string="Person" attrs="{'invisible': ['|',('type_risk', '!=', 'person')]}">
                                     <field name="name"/>
@@ -182,7 +185,7 @@
                 </xpath>
 
                 <xpath expr="/form/sheet/group[3]" position="after">
-                    <button name="covers_button" string="create covers line" class="oe_highlight" type="object"  attrs="{'invisible': ['|',('test', '=', False)]}"/>
+                    <button name="covers_button" string="Validate" class="oe_highlight" type="object"  attrs="{'invisible': ['|',('test', '=', False)]}"/>
 
                     <field name="set_covers" invisible="1"/>
                     <field name="id" invisible="1"/>

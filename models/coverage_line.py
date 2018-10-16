@@ -44,9 +44,8 @@ class Covers(models.Model):
                self.deductible=self.covers.deductible
                self.limitone=self.covers.limitone
                self.limittotal=self.covers.limittotal
-               self.net_premium = self.sum_insured
 
-    @api.onchange('rate')
+    @api.onchange('rate','sum_insured')
     def compute_premium(self):
         if self.covers and self.rate:
                self.net_premium=(self.sum_insured*self.rate)/100

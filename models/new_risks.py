@@ -18,10 +18,13 @@ class New_Risks(models.Model):
 
 
             if self.test == "vehicle" or self.type_risk == 'vehicle':
-                self.risk_description = "VTyp: "+(str(self.car_tybe.name)+ ' - ' if self.car_tybe.name else " " + "_") + "   " +"MAN: "+ (
-                    str(self.Man.setup_id)+ " - " if self.Man.setup_id else " " + "_") + "  " +"MDL: "+ (
-                                           str(self.model.name)+" - " if self.model.name else " " + "_") + "   " +"Mk: "+ (
-                                           str(self.year_of_made)+" - " if self.year_of_made else " " + "_") + "  " +"VCC: "+ (
+                self.risk_description = "VT: "+(str(self.car_tybe.name)+ ' - ' if self.car_tybe.name else " " + "_") + "   " +"MK: "+ (
+                    str(self.Man.setup_id)+ " - " if self.Man.setup_id else " " + "_") + "  " +"MD: "+ (
+                                           str(self.model.name)+" - " if self.model.name else " " + "_") + "   " +"YR: "+ (
+                                           str(self.year_of_made)+" - " if self.year_of_made else " " + "_") + "  " +"PN: "+ (
+                                           str(self.plate_no)+ ' - ' if self.plate_no else " " + "_")+"  "+"CH: "+ (
+                                           str(self.chassis_no)+ ' - ' if self.chassis_no else " " + "_")+"  "+"EN: "+ (
+                                           str(self.engine)+ ' - ' if self.engine else " " + "_")+"  "+"VCC: "+ (
                                            str(self.motor_cc) if self.motor_cc else " " + "_")
             #
             if self.test == "cargo" or self.type_risk == 'cargo':
@@ -50,7 +53,11 @@ class New_Risks(models.Model):
     #group car
     car_tybe = fields.Many2one('insurance.setup.item',string='Vehicle Type',domain="[('setup_id.setup_key','=','vehicletype')]")
     motor_cc = fields.Char("Motor cc")
-    year_of_made = fields.Integer("Year of Made")
+    year_of_made = fields.Char("Year of Made")
+    plate_no = fields.Char("Plate Number")
+    chassis_no = fields.Char("Chassis Number")
+    engine = fields.Char("Engine Number")
+
     Man = fields.Many2one('insurance.setup',string='Maker',domain="[('setup_key','=','man')]")
     model = fields.Many2one('insurance.setup.item',string='Model')
 

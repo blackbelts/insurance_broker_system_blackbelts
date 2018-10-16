@@ -119,6 +119,9 @@
                                         <field name="model" widget="selection"/>
                                         <field name="motor_cc"/>
                                         <field name="year_of_made"/>
+                                        <field name="plate_no"/>
+                                        <field name="chassis_no"/>
+                                        <field name="engine"/>
                                     </group>
                                     <group string="Person" attrs="{'invisible': ['|',('test', '!=', 'person')]}">
                                         <field name="name"/>
@@ -137,24 +140,23 @@
                                     </group>
                                 </form>
                             </field>
-                            <button name="generate_covers" string="Generate Covers" class="oe_highlight" type="object" attrs="{'invisible': [('check_item', '=', False)]}" />
+                            <button name="generate_covers" string="Validate" class="oe_highlight" type="object" attrs="{'invisible': [('check_item', '=', False)]}" />
                             <field name="checho" invisible="1"/>
                             <field name="name_cover_rel_ids" nolabel="1" force_save="1"  attrs="{'invisible': [('checho', '=', False)]}">
                                 <tree editable="1">
-                                    <field name="riskk" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="riskk" options="{'no_create': True, 'no_open': True}" style="color:Red;"/>
                                     <!--<field name="risk_description"/>-->
                                     <field name="policy_rel_id" invisible="1"/>
                                     <field name="insurerd" invisible="1"/>
                                     <field name="prod_product" invisible="1"/>
-
                                     <field name="name1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="check" invisible="1"/>
+                                    <field name="sum_insure" attrs="{'readonly': [('check', '=', True)]}" force_save="1"/>
+                                    <field name="rate" attrs="{'readonly': [('check', '=', True)]}" force_save="1"/>
                                     <field name="net_perimum" attrs="{'readonly': [('check', '=', True)]}" force_save="1"/>
                                     <field name="limitone" attrs="{'readonly': [('check', '=', True)]}" force_save="1"/>
                                     <field name="limittotal" attrs="{'readonly': [('check', '=', True)]}" force_save="1"/>
                                     <field name="deductible" attrs="{'readonly': [('check', '=', True)]}" force_save="1"/>
-                                    <field name="sum_insure" attrs="{'readonly': [('check', '=', True)]}" force_save="1"/>
-                                    <field name="rate" attrs="{'readonly': [('check', '=', True)]}" force_save="1"/>
 
                                 </tree>
                             </field>
