@@ -10,26 +10,8 @@ class PolicyBroker(models.Model):
     _name = "policy.broker"
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    # @api.multi
-    # def show_claim(self):
-    #     form_view = self.env.ref('insurance_broker_system_blackbelts.tree_insurance_claim')
-    #     form_view3 =self.env.ref('insurance_broker_system_blackbelts.form_insurance_claim')
-    #     return {
-    #         'name': ('tree insurance claim'),
-    #         'view_type': 'form',
-    #         'view_mode': 'tree, form',
-    #         'views': [(form_view.id, 'form'),(form_view3.id, 'tree')],
-    #         'res_model': 'insurance.claim',
-    #         'target': 'current',
-    #         'type': 'ir.actions.act_window',
-    #         'context': {
-    # #                     "default_policy_number":self.id
-    #
-    #         }
-    # #     }
-    #
-    #
-    #
+
+
 
     @api.multi
     def show_claim(self):
@@ -203,24 +185,30 @@ class PolicyBroker(models.Model):
         if total > 100:
             raise ValidationError("Your share percentage must be under percentage")
 
-    # @api.multi
-    # @api.onchange('bool')
-    # def setcovers_veh(self):
-    #     ids = self.env['insurance.product.coverage'].search(
-    #         [('product_id', '=', self.product_policy.id)])
-    #     print(ids)
-    #     if self.bool:
-    #         print('xxx')
-    #         for record in self.new_risk_ids:
-    #              for rec in ids:
-    #                  print('i enter')
-    #                  record.name_cover_risk_ids =(0, 0, {
-    #                      "name": rec.Name,
-    #                      "sum_insure": rec.defaultvalue,
-    #                      "check": rec.readonly,
-    #                      # "rate": rec.product_id.name_cover_ids.covers_rel_ids.rate,
-    #                      "net_perimum": rec.readonly and rec.defaultvalue
-    #                  })
+    @api.multi
+    def To_renewal(self):
+        form_view = self.env.ref('insurance_broker_system_blackbelts.Renewal_Policy_form_one')
+
+        return {
+                   'name': ('Renwal'),
+                   'view_type': 'form',
+                   'view_mode': 'form',
+                   'views': [(form_view.id, 'form')],
+                   'res_model': 'renewal.again',
+                   'target': 'current',
+                   'type': 'ir.actions.act_window',
+                   'context': {'default_old_number':self.id},
+        }
+
+    @api.model
+    def compute_date(self):
+        if (datetime.today().strftime('%Y-%m-%d')):
+            if (datetime.today().strftime('%Y-%m-%d'))>=self.end_date:
+                self.renewal_state=True
+
+
+
+
 
 
     bool = fields.Boolean()
@@ -259,9 +247,9 @@ class PolicyBroker(models.Model):
 
     customer = fields.Many2one('res.partner', 'Customer')
 
-    insurance_type = fields.Selection([('Life', 'Life'),
-                                       ('P&C', 'P&C'),
-                                       ('Health', 'Health'), ],
+    insurance_type = fields.Selection([('life', 'Life'),
+                                       ('p&c', 'P&C'),
+                                       ('health', 'Health'), ],
                                       'Insurance Type', track_visibility='onchange')
     ins_type = fields.Selection([('Individual', 'Individual'),
                                  ('Group', 'Group'), ],
@@ -406,6 +394,10 @@ class PolicyBroker(models.Model):
                                      'Status', required=True, default='pending')
     hide_inv_button = fields.Boolean(copy=False)
     invoice_ids = fields.One2many('account.invoice', 'insurance_id', string='Invoices', readonly=True)
+    renewal_state=fields.Boolean(copy=False,compute='compute_date')
+
+
+
 
     _sql_constraints = [
         ('std_id_unique', 'unique(std_id,edit_number)', 'Policy Number  already exists!')]
@@ -434,7 +426,8 @@ class PolicyBroker(models.Model):
                 cust_invoice=self.env['account.invoice'].create({
                     'type': 'out_invoice',
                     'partner_id': self.customer.id,
-                    'name': 'customer_invoice',
+                    'insured_invoice': 'customer_invoice',
+                    'name': 'Customer Invoice of ' +str(self.customer.name),
                     'user_id': self.env.user.id,
                     'insurance_id': self.id,
                     'origin': self.policy_number,
@@ -443,7 +436,7 @@ class PolicyBroker(models.Model):
                     'insured_insurer': self.company.id,
                     'insured_product': self.product_policy.id,
                     'invoice_line_ids': [(0, 0, {
-                        'name': 'Customer Invoice',
+                        'name': str(self.line_of_bussines.line_of_business),
                         'quantity': 1,
                         'price_unit': record.amount,
                         'account_id': self.line_of_bussines.income_account.id,
@@ -454,7 +447,8 @@ class PolicyBroker(models.Model):
                 ins_bill=self.env['account.invoice'].create({
                     'type': 'in_invoice',
                     'partner_id': self.company.id,
-                    'name': 'insurer_bill',
+                    'insured_invoice': 'insurer_bill',
+                    'name': 'Insurer Bill  of ' +str(self.company.name),
                     'user_id': self.env.user.id,
                     'insurance_id': self.id,
                     'origin': self.policy_number,
@@ -463,7 +457,7 @@ class PolicyBroker(models.Model):
                     'insured_insurer': self.company.id,
                     'insured_product': self.product_policy.id,
                     'invoice_line_ids': [(0, 0, {
-                        'name': 'Insurer Bill',
+                        'name': str(self.line_of_bussines.line_of_business),
                         'quantity': 1,
                         'price_unit': record.amount,
                         'account_id': self.line_of_bussines.expense_account.id,
@@ -471,33 +465,12 @@ class PolicyBroker(models.Model):
                 })
                 ins_bill.action_invoice_open()
 
-        for record in self.share_policy_rel_ids:
-            if record.amount !=0:
-                comm_bill = self.env['account.invoice'].create({
-                    'type': 'in_invoice',
-                    'partner_id': record.agent.id,
-                    'name': 'commission',
-                    'user_id': self.env.user.id,
-                    'insurance_id': self.id,
-                    'origin': self.policy_number,
-                    'insured_type':self.insurance_type,
-                    'insured_lOB': self.line_of_bussines.id,
-                    'insured_insurer': self.company.id,
-                    'insured_product': self.product_policy.id,
-                    'invoice_line_ids': [(0, 0, {
-                        'name': 'Commission',
-                        'quantity': 1,
-                        'price_unit': record.amount,
-                        'account_id': self.line_of_bussines.expense_account.id,
-                    })],
-                })
-                comm_bill.action_invoice_open()
-
         if self.total_commision !=0:
             brok_invoice = self.env['account.invoice'].create({
                 'type': 'out_invoice',
-                'partner_id': 1,
-                'name': 'brokerage',
+                'partner_id': self.company.id,
+                'insured_invoice':'brokerage',
+                'name':'Brokerage  of ' +str(self.company.name),
                 'user_id': self.env.user.id,
                 'insurance_id': self.id,
                 'origin': self.policy_number,
@@ -506,13 +479,35 @@ class PolicyBroker(models.Model):
                 'insured_insurer':self.company.id,
                 'insured_product':self.product_policy.id,
                 'invoice_line_ids': [(0, 0, {
-                    'name': 'Brokerage',
+                    'name': str(self.line_of_bussines.line_of_business),
                     'quantity': 1,
                     'price_unit': self.total_commision,
-                    'account_id': self.line_of_bussines.expense_account.id,
+                    'account_id': self.line_of_bussines.income_account.id,
                 })],
             })
             brok_invoice.action_invoice_open()
+
+        if self.personcom !=0:
+            com_bill = self.env['account.invoice'].create({
+                'type': 'in_invoice',
+                'partner_id':self.salesperson.id,
+                'insured_invoice':'commission',
+                'name':'Commission  of ' +str(self.salesperson.name),
+                'user_id': self.env.user.id,
+                'insurance_id': self.id,
+                'origin': self.policy_number,
+                'insured_type':self.insurance_type,
+                'insured_lOB':self.line_of_bussines.id,
+                'insured_insurer':self.company.id,
+                'insured_product':self.product_policy.id,
+                'invoice_line_ids': [(0, 0, {
+                    'name': str(self.line_of_bussines.line_of_business),
+                    'quantity': 1,
+                    'price_unit': self.personcom,
+                    'account_id': self.line_of_bussines.expense_account.id,
+                })],
+            })
+            com_bill.action_invoice_open()
 
         self.hide_inv_button = False
 
@@ -524,6 +519,7 @@ class AccountInvoiceRelate(models.Model):
     insured_lOB = fields.Many2one('insurance.line.business',string='LOB')
     insured_insurer = fields.Many2one('res.partner',string='Insurer')
     insured_product = fields.Many2one('insurance.product',string='Product')
+    insured_invoice=fields.Char(string='insured invoice')
 
 
 class Extra_Covers(models.Model):
@@ -730,12 +726,7 @@ class CommisionSetup(models.Model):
     layer5 = fields.Float(string="L5 ")
 
 
-class InheritUsers(models.Model):
-    _inherit = "res.users"
 
-    layer = fields.Selection(
-        [("l1", "Layer 1"), ("l2", "Layer 2"), ("l3", "Layer 3"), ("l4", "Layer 4"), ("l5", "Layer 5"),
-         ("l6", "Layer 6"), ("l7", "Layer 7"), ("l8", "Layer 8")], string="Layer", required=True)
 
 
 class InheritSale(models.Model):
