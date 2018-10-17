@@ -35,6 +35,9 @@ class New_Risks(models.Model):
             if self.test == "location" or self.type_risk == 'location':
                 self.risk_description = "ADD: "+(str(self.address)+" - " if self.address else " " + "_") + "  " +"Typ: "+ (
                     str(self.type) if self.type else " " + "_")
+        else:
+            self.risk_descriptio="aya"
+
             # if rec.test == "location":
             #     rec.risk_description = (str(rec.group_name) if rec.group_name else " " + "_") + "  " + (
             #         str(rec.count) if rec.count else " " + "_")
@@ -53,7 +56,7 @@ class New_Risks(models.Model):
     #group car
     car_tybe = fields.Many2one('insurance.setup.item',string='Vehicle Type',domain="[('setup_id.setup_key','=','vehicletype')]")
     motor_cc = fields.Char("Motor cc")
-    year_of_made = fields.Char("Year of Made")
+    year_of_made = fields.Char("Year of Make")
     plate_no = fields.Char("Plate Number")
     chassis_no = fields.Char("Chassis Number")
     engine = fields.Char("Engine Number")
@@ -120,3 +123,5 @@ class New_Risks(models.Model):
     _sql_constraints = [
         ('risk_unique', 'unique(policy_risk_id,risk_description)', 'ID already exists!')]
 
+class dash(models.Model):
+    _name="dash"

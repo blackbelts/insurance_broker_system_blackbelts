@@ -287,6 +287,7 @@ class crm_leads(models.Model):
     def _change(self):
         if self.c_type.id:
             self.planned_revenue = self.ammount / self.c_type.rate
+            print(self.c_type.rate)
 
 
 

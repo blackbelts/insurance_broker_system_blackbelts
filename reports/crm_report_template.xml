@@ -53,7 +53,6 @@
                                 <h4>Propsals:</h4>
                                 <thead>
                                     <tr>
-                                        <th>Proposal ID</th>
                                         <th>Insurer</th>
                                         <th>Product</th>
                                         <th>Premium</th>
@@ -61,7 +60,6 @@
                                 </thead>
                                 <tbody>
                                     <tr t-foreach="o.proposal_opp" t-as="p">
-                                        <td><span t-field="p.proposal_id"/></td>
                                         <td><span t-field="p.Company"/></td>
                                         <td><span t-field="p.product_pol"/></td>
                                         <td><span t-field="p.premium"/></td>
