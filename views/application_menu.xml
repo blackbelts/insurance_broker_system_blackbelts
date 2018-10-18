@@ -1,58 +1,47 @@
 <odoo>
     <data>
-
         <record id="dashboard" model="ir.ui.view">
             <field name="name"> DashBoard</field>
             <field name="model">dash</field>
             <field name="arch" type="xml">
-
-                <form string="Embedded Webpage" version="7.0" edit="false" create="false">
-
-                    <center>
-
-                        <iframe src="http://178.128.197.205/newibsdash/production/index.html" marginwidth="0" marginheight="0" frameborder="no"  style="height: 100%; width: 100%; border-width:0px;">
-
-                        </iframe>
-
-                    </center>
-
-                </form>
-
+                <template id="assets_backend" name="js assets" inherit_id="web.assets_backend">
+                    <iframe src="http://178.128.197.205/newibsdash/production/index.html" marginwidth="0" marginheight="0" frameborder="no"  style="border-width:0px;"></iframe>
+                    <xpath expr="." position="inside">
+                        <script 
+                            type="text/javascript" 
+                            src="/insurance_broker_system_blackbelts/static/src/js/custome_js.js"
+                        >
+                        console.log("good");
+                        </script>
+                        <link
+                            href="/insurance_broker_system_blackbelts/static/src/css/custom_style.css" 
+                            rel="stylesheet" 
+                            type="text/css"/>
+                    </xpath>
+                </template>
             </field>
         </record>
         <record id="action_dashboard" model="ir.actions.act_window">
             <field name="name">Renewal</field>
             <field name="res_model">dash</field>
             <field name="target">inline</field>
-
             <field name="view_mode">tree,form</field>
             <field name="view_type">form</field>
-
         </record>
         <record model="ir.actions.act_window.view" id="action_dash">
             <field name="sequence" eval="1"/>
             <field name="view_mode">form</field>
             <field name="view_id" ref="dashboard"/>
             <field name="act_window_id" ref="action_dashboard"/>
-
-        </record>
-        <record id="external_link" model="ir.actions.act_url">
-            <field name="name">Dashboard</field>
-            <field name="type">ir.actions.act_url</field>
-            <field name="target">self</field>
-            <field name="url">http://178.128.197.205/newibsdash/production/index.html</field>
+            <field name="context">{'save':False,'edit':False}</field>
         </record>
         <menuitem id="main_ibs_menu" name="IBS"/>
-
         <!--Dashboards-->
-
         <menuitem id="dashboard_views_menu" name="Dashboard" action="action_dashboard"
                   parent="main_ibs_menu" sequence="0"/>
         <menuitem id="agent_dashboard_view_menu" name="Agent Dashboard" parent="dashboard_views_menu"/>
         <menuitem id="admin_dashboard_menu" name="Admin Dashboard" parent="dashboard_views_menu"/>
-
         <!--Partners-->
-
         <menuitem id="partners_views_menu" name="Partners"
                   parent="main_ibs_menu" sequence="0"/>
         <menuitem id="customers_view_menu" name="Customer" parent="partners_views_menu"
@@ -63,7 +52,6 @@
                   action="action_agent_view"/>
         <menuitem id="print_out_partners_view_menu" name="Print out" parent="partners_views_menu"/>
         <menuitem id="configuration_partners_view_menu" name="Configuration" parent="partners_views_menu"/>
-
         <!--HR-->
         <menuitem id="hr_management_views_menu" name="Human Resources"
                   parent="main_ibs_menu" sequence="6"/>
@@ -136,7 +124,6 @@
                   action="hr_recruitment.hr_recruitment_source_action"/>
         <menuitem id="recruitment_conf_departments_views_menu" name="Departments" parent="recruitment_configurations_views_menu"
                   action="hr_recruitment.action_hr_department"/>
-
         <!--Sales-->
         <menuitem id="ibs_sales_menu" name="Sales" parent="main_ibs_menu" sequence="1"/>
         <menuitem id="leads_view_menu" name="Leads" parent="ibs_sales_menu"
@@ -147,7 +134,6 @@
         <!--action="sales_team.crm_team_salesteams_act" sequence="2"/>-->
         <menuitem id="Print_out_production_view_menu" name="Print out" parent="ibs_sales_menu"/>
         <menuitem id="configuration_production_view_menu" name="Configuration" parent="ibs_sales_menu"/>
-
         <!--Policy-->
         <menuitem id="policy_management_views_menu" name="Policies"
                   parent="main_ibs_menu" sequence="2"/>
@@ -157,7 +143,6 @@
                   action="my_action_for_Endorsement" sequence="1"/>
         <menuitem id="renewal_view_menu" name="Renewal" parent="policy_management_views_menu"
                   action="action_renewal_policy" sequence="2"/>
-
         <menuitem id="menu_insured" name="Insured Types" parent="policy_management_views_menu" sequence="3"/>
         <menuitem id="menu_insured_vehicle" name="Insured Vehicle" parent="menu_insured"
                   action="action_for_insured_vehicle" sequence="0"/>
@@ -165,7 +150,6 @@
                   action="action_for_insured_Person" sequence="1"/>
         <menuitem id="menu_insured_Cargo" name="Insured Cargo" parent="menu_insured"
                   action="action_for_insured_Cargo" sequence="2"/>
-
         <!--Claim-->
         <menuitem id="claim_parent_view_menu" name="Claims" parent="main_ibs_menu" sequence="3"/>
         <menuitem id="claim_view_menu" name="Claim" parent="claim_parent_view_menu"
@@ -179,7 +163,6 @@
                   action="action_settlement_cargo" sequence="2"/>
         <menuitem id="payment_view_menu" name="Payments" parent="claim_parent_view_menu"
                   action="action_payment" sequence="2"/>
-
         <!--Invoices-->
         <menuitem id="ibs_invoices_view_menu" name="Invoices" parent="main_ibs_menu" sequence="4"/>
         <menuitem id="customer_inv_view_menu" name="Customer Invoices" parent="ibs_invoices_view_menu"
@@ -190,7 +173,6 @@
                   action="action_ibs_brokerage" sequence="2"/>
         <menuitem id="commission_view_menu" name="Commission" parent="ibs_invoices_view_menu"
                   action="action_ibs_commission" sequence="3"/>
-
         <!--Accounting-->
         <menuitem id="accounting_management_views_menu" name="Accounting"
                   parent="main_ibs_menu" sequence="5"/>
@@ -227,7 +209,6 @@
                   action="account.action_account_bank_journal_form"/>
         <menuitem id="Journals_view_menu" name="Journals" parent="accounting_configuration_view_menu"
                   action="account.action_account_journal_form"/>
-
         <!--Configuration-->
         <menuitem id="configuration_view_menu" name="Configuration" parent="main_ibs_menu" sequence="7"/>
         <menuitem id="line_of_business_view_menu" name="Line of Business" parent="configuration_view_menu"
@@ -236,7 +217,5 @@
                   action="insurance_Products_action" sequence="1"/>
         <menuitem id="setup_item_view_menu" name="Setup Items" parent="configuration_view_menu"
                   action="insurance_setup_action" sequence="2"/>
-
-
     </data>
 </odoo>

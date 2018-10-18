@@ -483,7 +483,7 @@ class PolicyBroker(models.Model):
                     'insured_lOB': self.line_of_bussines.id,
                     'insured_insurer': self.company.id,
                     'insured_product': self.product_policy.id,
-                    'date_due':self.record.date,
+                    'date_due':record.date,
                     'invoice_line_ids': [(0, 0, {
                         'name': str(self.line_of_bussines.line_of_business),
                         'quantity': 1,
@@ -505,7 +505,7 @@ class PolicyBroker(models.Model):
                     'insured_lOB': self.line_of_bussines.id,
                     'insured_insurer': self.company.id,
                     'insured_product': self.product_policy.id,
-                    'date_due': self.record.date,
+                    'date_due': record.date,
                     'invoice_line_ids': [(0, 0, {
                         'name': str(self.line_of_bussines.line_of_business),
                         'quantity': 1,
