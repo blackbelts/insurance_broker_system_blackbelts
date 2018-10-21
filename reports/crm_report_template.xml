@@ -116,13 +116,11 @@
 
                                                         <tr t-foreach="o.coverage_line" t-as="cover">
                                                             <t t-if="cover.proposal_id.id==p.id" >
-
                                                                 <td align="right"><span t-esc="cover.risk_id_covers.risk_description"/></td>
                                                                 <td align="right"><span t-esc="cover.covers.Name"/></td>
                                                                 <td align="right"><span t-esc="'{0:,.2f}'.format(int(cover.sum_insured))"/></td>
                                                                 <td align="right"><span t-esc="cover.rate"/></td>
                                                                 <td align="right"><span t-esc="'{0:,.2f}'.format(int(cover.net_premium))"/></td>
-                                                       
                                                                 <t t-set="totalprem" t-value="totalprem+cover.net_premium"/>
                                                                 <td align="right"><span t-esc="'{0:,.2f}'.format(int(cover.limitone))"/></td>
                                                                 <td align="right"><span t-esc="'{0:,.2f}'.format(int(cover.limittotal))"/></td>
@@ -227,7 +225,6 @@
                                     <t t-set="totalprem" t-value="0"/>
 
                                     <tr t-foreach="o.name_cover_rel_ids" t-as="cover">
-
                                         <td align="right"><span t-esc="cover.riskk.risk_description"/></td>
                                         <td align="right"><span t-esc="cover.name1.Name"/></td>
                                         <td align="right"><span t-esc="'{0:,.2f}'.format(int(cover.sum_insure))"/></td>
@@ -236,7 +233,7 @@
                                         <t t-set="totalprem" t-value="totalprem+cover.net_perimum"/>
                                         <td align="right"><span t-esc="'{0:,.2f}'.format(int(cover.limitone))"/></td>
                                         <td align="right"><span t-esc="'{0:,.2f}'.format(int(cover.limittotal))"/></td>
-                                        <td align="right"><span t-esc="'{0:,.2f}'.format(int(cover.deductible))"/></td>   
+                                        <td align="right"><span t-esc="'{0:,.2f}'.format(int(cover.deductible))"/></td>
 
                                     </tr>
                                     <tr>

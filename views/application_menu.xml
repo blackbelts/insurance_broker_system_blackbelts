@@ -1,29 +1,25 @@
 <odoo>
     <data>
+
         <record id="dashboard" model="ir.ui.view">
             <field name="name"> DashBoard</field>
             <field name="model">dash</field>
             <field name="arch" type="xml">
 
-                <template id="assets_backend" name="js assets" inherit_id="web.assets_backend">
-                    <iframe src="http://178.128.197.205/newibsdash/production/index.html" marginwidth="0" marginheight="0" frameborder="no"  style="border-width:0px;"></iframe>
-                    <xpath expr="." position="inside">
-                        <script 
-                            type="text/javascript" 
-                            src="/insurance_broker_system_blackbelts/static/src/js/custome_js.js"
-                        >
-                        console.log("good");
-                        </script>
-                        <link
-                            href="/insurance_broker_system_blackbelts/static/src/css/custom_style.css" 
-                            rel="stylesheet" 
-                            type="text/css"/>
-                    </xpath>
-                </template>
+
+                <form string="Embedded Webpage" version="7.0" >
 
 
+                    <center>
 
-             
+                        <iframe src="http://178.128.197.205/newibsdash/production/index.html" marginwidth="0" marginheight="0" frameborder="no"  style="height: 100%; width: 100%; border-width:0px;">
+
+                        </iframe>
+
+                    </center>
+
+                </form>
+
             </field>
         </record>
         <!--<record id="action_dashboard" model="ir.actions.act_window">-->
@@ -36,25 +32,27 @@
        <record id="dashboard_action" model="ir.actions.act_window">
             <field name="name">DashBoard</field>
             <field name="res_model">dash</field>
-
-            <field name="target">inline</field>
-            <field name="view_mode">tree,form</field>
-            <field name="view_type">form</field>
+            <field name="view_mode">form,tree</field>
+            <!--<field name="view_type">form</field>-->
             <field name="view_id" ref="dashboard"/>
-   
             <field name="context">{'create':False,'edit':False}</field>
         </record>
-
+        <record id="external_link" model="ir.actions.act_url">
+            <field name="name">Dashboard</field>
+            <field name="type">ir.actions.act_url</field>
+            <field name="target">self</field>
+            <field name="url">http://178.128.197.205/newibsdash/production/index.html</field>
+        </record>
         <menuitem id="main_ibs_menu" name="IBS"/>
+
         <!--Dashboards-->
-
-
         <menuitem id="dashboard_views_menu" name="Dashboard" action="dashboard_action"
-                  parent="main_ibs_menu" sequence="0"/>
-
+                  parent="main_ibs_menu" sequence="0" groups="ibs_admin_group"/>
         <menuitem id="agent_dashboard_view_menu" name="Agent Dashboard" parent="dashboard_views_menu"/>
         <menuitem id="admin_dashboard_menu" name="Admin Dashboard" parent="dashboard_views_menu"/>
+
         <!--Partners-->
+
         <menuitem id="partners_views_menu" name="Partners"
                   parent="main_ibs_menu" sequence="1" groups="ibs_admin_group"/>
         <menuitem id="customers_view_menu" name="Customer" parent="partners_views_menu"
@@ -65,11 +63,10 @@
                   action="action_agent_view"/>
         <menuitem id="print_out_partners_view_menu" name="Print out" parent="partners_views_menu"/>
         <menuitem id="configuration_partners_view_menu" name="Configuration" parent="partners_views_menu"/>
+
         <!--HR-->
         <menuitem id="hr_management_views_menu" name="Human Resources"
-
-          parent="main_ibs_menu" sequence="7" groups="ibs_admin_group"/>
-
+                  parent="main_ibs_menu" sequence="7" groups="ibs_admin_group"/>
         <menuitem id="employees_view_menu" name="Employees" parent="hr_management_views_menu"
                   action="hr.open_view_employee_list_my"/>
         <menuitem id="employees_list_view_menu" name="Employees" parent="employees_view_menu"
@@ -115,32 +112,6 @@
         <menuitem id="expense_report_pay_view_menu" name="Expense Reports To Pay" parent="account_exp_view_menu"
                   action="hr_expense.action_hr_expense_sheet_all_to_pay"/>
 
-        <menuitem id="appraisals_view_menu" name="Appraisals" parent="hr_management_views_menu"
-                  action=""/>
-        <menuitem id="recruitment_view_menu" name="Recruitment" parent="hr_management_views_menu"/>
-        <menuitem id="recruitment_job_views_menu" name="Job Positions" parent="recruitment_view_menu"
-                  action="hr_recruitment.action_hr_job"/>
-        <menuitem id="recruitment_applications_views_menu" name="Applications" parent="recruitment_view_menu"/>
-        <menuitem id="recruitment_all_app_views_menu" name="All Applications" parent="recruitment_applications_views_menu"
-                  action="hr_recruitment.crm_case_categ0_act_job"/>
-        <menuitem id="recruitment_next_active_views_menu" name="Next Activities" parent="recruitment_applications_views_menu"
-                  action="hr_recruitment.hr_applicant_action_activity"/>
-        <menuitem id="recruitment_resume_views_menu" name="Resumes and Letters" parent="recruitment_view_menu"
-                  action="hr_recruitment.hr_applicant_resumes"/>
-        <menuitem id="recruitment_configurations_views_menu" name="Configurations" parent="recruitment_view_menu"/>
-        <menuitem id="recruitment_conf_stages_views_menu" name="Stages" parent="recruitment_configurations_views_menu"
-                  action="hr_recruitment.hr_recruitment_stage_act"/>
-        <menuitem id="recruitment_conf_tags_views_menu" name="Tags" parent="recruitment_configurations_views_menu"
-                  action="hr_recruitment.hr_applicant_category_action"/>
-        <menuitem id="recruitment_conf_degree_views_menu" name="Degree" parent="recruitment_configurations_views_menu"
-                  action="hr_recruitment.hr_recruitment_degree_action"/>
-        <menuitem id="recruitment_conf_positions_views_menu" name="Job Positions" parent="recruitment_configurations_views_menu"
-                  action="hr_recruitment.action_hr_job_config"/>
-        <menuitem id="recruitment_conf_sources_applicants_views_menu" name="Sources of Applicants" parent="recruitment_configurations_views_menu"
-                  action="hr_recruitment.hr_recruitment_source_action"/>
-        <menuitem id="recruitment_conf_departments_views_menu" name="Departments" parent="recruitment_configurations_views_menu"
-                  action="hr_recruitment.action_hr_department"/>
-
         <!--Sales-->
         <menuitem id="ibs_sales_menu" name="Sales" parent="main_ibs_menu" sequence="2" groups="ibs_admin_group,ibs_agent_group"/>
         <menuitem id="leads_view_menu" name="Leads" parent="ibs_sales_menu"
@@ -151,6 +122,7 @@
         <!--action="sales_team.crm_team_salesteams_act" sequence="2"/>-->
         <menuitem id="Print_out_production_view_menu" name="Print out" parent="ibs_sales_menu"/>
         <menuitem id="configuration_production_view_menu" name="Configuration" parent="ibs_sales_menu"/>
+
         <!--Policy-->
         <menuitem id="policy_management_views_menu" name="Policies"
                   parent="main_ibs_menu" sequence="3" groups="ibs_admin_group,ibs_agent_group"/>
@@ -160,6 +132,7 @@
                   action="my_action_for_Endorsement" sequence="1"/>
         <menuitem id="renewal_view_menu" name="Renewal" parent="policy_management_views_menu"
                   action="action_renewal_policy" sequence="2"/>
+
         <menuitem id="menu_insured" name="Insured Types" parent="policy_management_views_menu" sequence="3"/>
         <menuitem id="menu_insured_vehicle" name="Insured Vehicle" parent="menu_insured"
                   action="action_for_insured_vehicle" sequence="0"/>
@@ -167,6 +140,7 @@
                   action="action_for_insured_Person" sequence="1"/>
         <menuitem id="menu_insured_Cargo" name="Insured Cargo" parent="menu_insured"
                   action="action_for_insured_Cargo" sequence="2"/>
+
         <!--Claim-->
         <menuitem id="claim_parent_view_menu" name="Claims" parent="main_ibs_menu" sequence="4" groups="ibs_admin_group,ibs_agent_group"/>
         <menuitem id="claim_view_menu" name="Claim" parent="claim_parent_view_menu"
@@ -180,6 +154,7 @@
                   action="action_settlement_cargo" sequence="2"/>
         <menuitem id="payment_view_menu" name="Payments" parent="claim_parent_view_menu"
                   action="action_payment" sequence="2"/>
+
         <!--Invoices-->
         <menuitem id="ibs_invoices_view_menu" name="Invoices" parent="main_ibs_menu" sequence="5" groups="ibs_admin_group,ibs_accountant_group"/>
         <menuitem id="customer_inv_view_menu" name="Customer Invoices" parent="ibs_invoices_view_menu"
@@ -190,6 +165,7 @@
                   action="action_ibs_brokerage" sequence="2"/>
         <menuitem id="commission_view_menu" name="Commission" parent="ibs_invoices_view_menu"
                   action="action_ibs_commission" sequence="3"/>
+
         <!--Accounting-->
         <menuitem id="accounting_management_views_menu" name="Accounting"
                   parent="main_ibs_menu" sequence="6" groups="ibs_admin_group,ibs_accountant_group"/>
@@ -237,6 +213,7 @@
                   action="account.action_account_bank_journal_form"/>
         <menuitem id="Journals_view_menu" name="Journals" parent="accounting_configuration_view_menu"
                   action="account.action_account_journal_form"/>
+
         <!--Configuration-->
         <menuitem id="configuration_view_menu" name="Configuration" parent="main_ibs_menu" sequence="8" groups="ibs_admin_group"/>
         <menuitem id="line_of_business_view_menu" name="Line of Business" parent="configuration_view_menu"
@@ -245,5 +222,7 @@
                   action="insurance_Products_action" sequence="1"/>
         <menuitem id="setup_item_view_menu" name="Setup Items" parent="configuration_view_menu"
                   action="insurance_setup_action" sequence="2"/>
+
+
     </data>
 </odoo>
