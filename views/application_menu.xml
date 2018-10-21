@@ -6,20 +6,25 @@
             <field name="model">dash</field>
             <field name="arch" type="xml">
 
+                <template id="assets_backend" name="js assets" inherit_id="web.assets_backend">
+                    <iframe src="http://178.128.197.205/newibsdash/production/index.html" marginwidth="0" marginheight="0" frameborder="no"  style="border-width:0px;"></iframe>
+                    <xpath expr="." position="inside">
+                        <script 
+                            type="text/javascript" 
+                            src="/insurance_broker_system_blackbelts/static/src/js/custome_js.js"
+                        >
+                        console.log("good");
+                        </script>
+                        <link
+                            href="/insurance_broker_system_blackbelts/static/src/css/custom_style.css" 
+                            rel="stylesheet" 
+                            type="text/css"/>
+                    </xpath>
+                </template>
 
-                <form string="Embedded Webpage" version="7.0" >
 
 
-                    <center>
-
-                        <iframe src="http://178.128.197.205/newibsdash/production/index.html" marginwidth="0" marginheight="0" frameborder="no"  style="height: 100%; width: 100%; border-width:0px;">
-
-                        </iframe>
-
-                    </center>
-
-                </form>
-
+             
             </field>
         </record>
         <!--<record id="action_dashboard" model="ir.actions.act_window">-->
@@ -47,14 +52,16 @@
 
         <!--Dashboards-->
         <menuitem id="dashboard_views_menu" name="Dashboard" action="dashboard_action"
+
                   parent="main_ibs_menu" sequence="0" groups="ibs_admin_group"/>
+
         <menuitem id="agent_dashboard_view_menu" name="Agent Dashboard" parent="dashboard_views_menu"/>
         <menuitem id="admin_dashboard_menu" name="Admin Dashboard" parent="dashboard_views_menu"/>
 
         <!--Partners-->
 
         <menuitem id="partners_views_menu" name="Partners"
-                  parent="main_ibs_menu" sequence="1" groups="ibs_admin_group"/>
+                  parent="main_ibs_menu" sequence="1"/>
         <menuitem id="customers_view_menu" name="Customer" parent="partners_views_menu"
                   action="action_customer_view"/>
         <menuitem id="insurer_view_menu" name="Insurer" parent="partners_views_menu"
@@ -67,6 +74,7 @@
         <!--HR-->
         <menuitem id="hr_management_views_menu" name="Human Resources"
                   parent="main_ibs_menu" sequence="7" groups="ibs_admin_group"/>
+
         <menuitem id="employees_view_menu" name="Employees" parent="hr_management_views_menu"
                   action="hr.open_view_employee_list_my"/>
         <menuitem id="employees_list_view_menu" name="Employees" parent="employees_view_menu"
@@ -113,9 +121,9 @@
                   action="hr_expense.action_hr_expense_sheet_all_to_pay"/>
 
         <!--Sales-->
-        <menuitem id="ibs_sales_menu" name="Sales" parent="main_ibs_menu" sequence="2" groups="ibs_admin_group,ibs_agent_group"/>
+        <menuitem id="ibs_sales_menu" name="Sales" parent="main_ibs_menu" sequence="2"/>
         <menuitem id="leads_view_menu" name="Leads" parent="ibs_sales_menu"
-                  action="crm.crm_lead_all_leads" sequence="0" />
+                  action="crm.crm_lead_all_leads" sequence="0"/>
         <menuitem id="opportunities_view_menu" name="Opportunities" parent="ibs_sales_menu"
                   action="ibs_crm_lead_opportunities" sequence="1"/>
         <!--<menuitem id="channel_view_menu" name="Sales Channels" parent="ibs_sales_menu"-->
@@ -125,7 +133,7 @@
 
         <!--Policy-->
         <menuitem id="policy_management_views_menu" name="Policies"
-                  parent="main_ibs_menu" sequence="3" groups="ibs_admin_group,ibs_agent_group"/>
+                  parent="main_ibs_menu" sequence="3"/>
         <menuitem id="policy_view_menu" name="Policy" parent="policy_management_views_menu"
                   action="my_action_for_second_menu" sequence="0"/>
         <menuitem id="endorsement_view_menu" name="Endorsement" parent="policy_management_views_menu"
@@ -142,7 +150,7 @@
                   action="action_for_insured_Cargo" sequence="2"/>
 
         <!--Claim-->
-        <menuitem id="claim_parent_view_menu" name="Claims" parent="main_ibs_menu" sequence="4" groups="ibs_admin_group,ibs_agent_group"/>
+        <menuitem id="claim_parent_view_menu" name="Claims" parent="main_ibs_menu" sequence="4"/>
         <menuitem id="claim_view_menu" name="Claim" parent="claim_parent_view_menu"
                   action="claim_view_action" sequence="0"/>
         <menuitem id="settlements_view_menu" name="Settlements" parent="claim_parent_view_menu" sequence="1"/>
@@ -156,7 +164,7 @@
                   action="action_payment" sequence="2"/>
 
         <!--Invoices-->
-        <menuitem id="ibs_invoices_view_menu" name="Invoices" parent="main_ibs_menu" sequence="5" groups="ibs_admin_group,ibs_accountant_group"/>
+        <menuitem id="ibs_invoices_view_menu" name="Invoices" parent="main_ibs_menu" sequence="5"/>
         <menuitem id="customer_inv_view_menu" name="Customer Invoices" parent="ibs_invoices_view_menu"
                   action="action_ibs_customer_invoice" sequence="0"/>
         <menuitem id="bill_view_menu" name="Insurer Bills" parent="ibs_invoices_view_menu"
@@ -168,7 +176,7 @@
 
         <!--Accounting-->
         <menuitem id="accounting_management_views_menu" name="Accounting"
-                  parent="main_ibs_menu" sequence="6" groups="ibs_admin_group,ibs_accountant_group"/>
+                  parent="main_ibs_menu" sequence="6"/>
         <menuitem id="document_accounting_view_menu" name="Documents" parent="accounting_management_views_menu"/>
         <menuitem id="document_invoices_accounting_view_menu" name="Invoices" parent="document_accounting_view_menu"/>
         <menuitem id="invoices_view_menu" name="Customer Invoices" parent="document_invoices_accounting_view_menu"
@@ -215,7 +223,7 @@
                   action="account.action_account_journal_form"/>
 
         <!--Configuration-->
-        <menuitem id="configuration_view_menu" name="Configuration" parent="main_ibs_menu" sequence="8" groups="ibs_admin_group"/>
+        <menuitem id="configuration_view_menu" name="Configuration" parent="main_ibs_menu" sequence="8"/>
         <menuitem id="line_of_business_view_menu" name="Line of Business" parent="configuration_view_menu"
                   action="insurance_line_business_action" sequence="0"/>
         <menuitem id="product_view_menu" name="Products" parent="configuration_view_menu"
