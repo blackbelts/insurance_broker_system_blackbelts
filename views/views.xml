@@ -195,7 +195,7 @@
                     </template>
                     <div class="btn-group btn-group-justified" id="menu">
                         <div class="btn-group" >
-                            <button name="validate_basic_opp" string="Basic Information" type="object" style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" class="btn btn-primary" attrs="{'invisible': [('validate_basic_mark_opp', '=', True)]}" />
+                            <button name="validate_basic_opp" string="Basic Info" type="object" style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" class="btn btn-primary" attrs="{'invisible': [('validate_basic_mark_opp', '=', True)]}" />
                         </div>
                         <div class="btn-group" >
                             <button name="validate_risk_opp" string="Risk" type="object" style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" class="btn btn-primary"  attrs="{'invisible': [('validate_risk_mark_opp', '=', True)]}"/>
@@ -207,7 +207,7 @@
                             <button name="validate_proposal_line" string="Proposal Lines" type="object" style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" class="btn btn-primary" attrs="{'invisible': [('validate_prop_line', '=', True)]}" />
                         </div>
                         <div class="btn-group" >
-                            <button name="validate_underwritting" string="UnderWritting" type="object" style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" class="btn btn-primary" attrs="{'invisible': [('validate_underwr', '=', True)]}" />
+                            <button name="validate_underwritting" string="U/W-Survey" type="object" style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" class="btn btn-primary" attrs="{'invisible': [('validate_underwr', '=', True)]}" />
                         </div>
                         <div class="btn-group" >
                             <button name="validate_continfo" string="Contact Info" type="object" style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" class="btn btn-primary" attrs="{'invisible': [('validate_contact', '=', True)]}" />
