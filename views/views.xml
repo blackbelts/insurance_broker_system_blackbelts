@@ -98,26 +98,30 @@
                 </xpath>
 
                 <!--//label[@for='module_account_followup']"-->
-                <xpath expr="/form/sheet/group[1]" position="before">
-                    <div  style="width: 50% !important;" attrs="{'invisible': ['|', ('active','=',False), ('probability', '!=', 100)]}" >
-                        <h2 class="o_row" >
-                            <div>
-                                <label for="policy_number" class="oe_edit_only"/>
-                                <div class="o_row">
+                <xpath expr="/form/sheet/group[1]/group[4]" position="after">
+                    <group style="width: 50% !important;" attrs="{'invisible': ['|', ('active','=',False), ('probability', '!=', 100)]}">
+                        <field name="policy_number"  style="font-size: 15px;"/>
+                        <field name="selected_coverage" style="font-size: 15px;" widget="selection" />
 
-                                    <field name="policy_number"  style="font-size: 15px;"/>
-                                    <span class="oe_grey" style="font-size: 15px;"> and </span>
-                                </div>
-                            </div>
-                            <div>
-                                <label for="selected_coverage" class="oe_edit_only"/>
-                                <div class="o_row">
-                                    <field name="selected_coverage" style="font-size: 15px;" widget="selection" />
+                        <!--<div >-->
+                        <!--<h2 class="o_row" >-->
+                        <!--<div>-->
+                        <!--<label for="policy_number" class="oe_edit_only" style="font-weight:bold"/>-->
+                        <!--<div class="o_row">-->
+                        <!--<field name="policy_number"  style="font-size: 15px;"/>-->
+                        <!--<span class="oe_grey" style="font-size: 15px;"> and </span>-->
+                        <!--</div>-->
+                        <!--</div>-->
+                        <!--<div>-->
+                        <!--<label for="selected_coverage" class="oe_edit_only" style="font-weight:bold"/>-->
+                        <!--<div class="o_row">-->
+                        <!--<field name="selected_coverage" style="font-size: 15px;" widget="selection" />-->
 
-                                </div>
-                            </div>
-                        </h2>
-                    </div>
+                        <!--</div>-->
+                        <!--</div>-->
+                        <!--</h2>-->
+                        <!--</div>-->
+                    </group>
                     <br/>
 
                 </xpath>
@@ -128,7 +132,7 @@
                         <div class="o_row">
                             <label for="c_type" style="font-weight:bold"/>
                             <div class="o_row" style="width: 100% !important;">
-                                <field name="c_type"  style="width:40%; font-size: 15px"/>
+                                <field name="c_type"  style="width:100%; font-size: 15px"/>
                                 <field name="ammount" style="width:100px; font-size: 15px"/>
                             </div>
                         </div>
@@ -137,15 +141,15 @@
                             <div>
                                 <label for="planned_revenue" class="oe_edit_only" style="font-weight:bold"/>
                                 <div class="o_row">
-                                    <field name="company_currency" invisible="1"/>
-                                    <field name="planned_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+                                    <field name="company_currency" invisible="1" style="font-size: 15px;"/>
+                                    <field name="planned_revenue" widget="monetary" options="{'currency_field': 'company_currency'}" style="font-size: 15px;"/>
                                     <span class="oe_grey"> at </span>
                                 </div>
                             </div>
                             <div>
                                 <label for="probability" class="oe_edit_only" style="font-weight:bold"/>
                                 <div class="o_row">
-                                    <field name="probability" widget="integer"/>
+                                    <field name="probability" widget="integer" style="font-size: 15px;"/>
                                     <span>%</span>
                                 </div>
                             </div>

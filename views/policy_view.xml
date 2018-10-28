@@ -46,6 +46,7 @@
                             </button>
                         </div>
                         <div class="oe_title">
+                            <h1>  <label for="std_id"/></h1>
                             <div class="o_row">
                                 <h1><field name="std_id" placeholder="e.g. Policy No." attrs="{'readonly': [('policy_status', '=', 'approved')]}"/></h1>
                             </div>
@@ -72,7 +73,7 @@
                         <div class="btn-group btn-group-justified" id="menu">
 
                             <div class="btn-group">
-                                <button name="validate_basic" string="Basic Information" type="object"
+                                <button name="validate_basic" string="Basic Info" type="object"
                                         style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" attrs="{'invisible': [('validate', '=', 'info')]}"/>
                             </div>
                             <div class="btn-group">
@@ -84,11 +85,11 @@
                                         style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" attrs="{'invisible': [('validate', '=', 'cover')]}"/>
                             </div>
                             <div class="btn-group">
-                                <button name="validate_commission" string="Share Commission" type="object"
+                                <button name="validate_commission" string="Commission" type="object"
                                         style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" attrs="{'invisible': [('validate', '=', 'com')]}"/>
                             </div>
                             <div class="btn-group">
-                                <button  string="Brokerages" type="object" name="validate_brokrage"
+                                <button  string="Brokerage" type="object" name="validate_brokrage"
                                          style="color: #337AB7; background: white;border-bottom: 1px solid #ddd;" attrs="{'invisible': [('validate', '=', 'bro')]}"/>
                             </div>
                             <div class="btn-group">
@@ -109,11 +110,14 @@
                         <!--<button  string="Installments" type="object"  class="oe_inline oe_stat_button" style="border-left: 0.5px solid #000 ;border-top: 0.5px solid #000 ; font-size: 16px;"/>-->
                         <!--<button  string="Invoices" type="object"  class="oe_inline oe_stat_button" style="border-left: 0.5px solid #000 ;border-top: 0.5px solid #000 ;border-right: 0.5px solid #000 ; font-size: 16px;"/>-->
                         <!--</div>-->
-                        <group attrs="{'invisible': [('validate', '!=', 'info')]}" >
-
-                            <field name="edit_number" readonly="1" force_save="1"/>
-                            <field name="edit_decr" attrs="{'invisible': [('edit_number', '&lt;=', 0)]}"/>
-                            <field name="renwal_check" type="checkbox" readonly="1" force_save="1"/>
+                        <group attrs="{'invisible': [('validate', '!=', 'info')]}"  >
+                            <div class="o_row" style="width: 50% !important;">
+                                <label for="edit_number" style="font-weight:bold" />
+                                <field name="edit_number" readonly="1" force_save="1"/>
+                                <field name="edit_decr" attrs="{'invisible': [('edit_number', '&lt;=', 0)]}"/>
+                                <label for="renwal_check" style="font-weight:bold"/>
+                                <field name="renwal_check" type="checkbox" readonly="1" force_save="1"/>
+                            </div>
                         </group>
                         <group  attrs="{'invisible': [('validate', '!=', 'info')]}">
                             <group >
