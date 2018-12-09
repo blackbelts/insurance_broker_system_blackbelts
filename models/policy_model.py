@@ -68,71 +68,6 @@ class PolicyBroker(models.Model):
                 res['company'] = lead.selected_coverage.Company.id
                 res['product_policy'] = lead.selected_coverage.product_pol.id
                 print(self.new_risk_ids)
-            elif self._context.get('active_model') == 'endorsement.edit':
-                lead = self.env['endorsement.edit'].browse(self._context.get('active_id'))
-                recordrisks = self.env['new.risks'].search([('id', 'in', lead.last_policy.new_risk_ids.ids)])
-                print(recordrisks)
-                records_risks = []
-                for rec in recordrisks:
-                    records_risks.append(rec.id)
-
-                # print(records_risks)
-                # coverlines = lead.env["covers.lines"].search([('id', 'in', lead.last_policy.name_cover_rel_ids.ids)])
-                # # print(coverlines)
-                # value = []
-                # for rec in coverlines:
-                #     print(rec)
-                #     covers=(
-                #         0,0,{'riskk':rec.riskk.id,
-                #              'name1':rec.name1.id,
-                #              'check':rec.check,
-                #              'sum_insure':rec.sum_insure,
-                #              'deductible':rec.deductible,
-                #              'limitone': rec.limitone,
-                #              'limittotal': rec.limittotal,
-                #              'rate':rec.rate,
-                #              'net_perimum':rec.net_perimum,
-                #
-                #              }
-                #     )
-                #     value.append(covers)
-
-                    # records_risks.append(rec.id)
-
-                # print(recordrisks)
-
-                # coverlines = self.env["covers.lines"].search([('id', 'in', lead.last_policy.name_cover_rel_ids.ids)])
-                # records_covers = []
-                # for rec in coverlines:
-                #     records_covers.append(rec.id)
-                res['customer'] = lead.last_policy.customer.id
-                res['company'] = lead.last_policy.company.id
-                res['product_policy'] = lead.last_policy.product_policy.id
-
-                # 'default_std_id': self.last_policy.std_id,
-                #
-                # 'default_issue_date':self.last_policy.issue_date,
-                # 'default_start_date':self.last_policy.start_date,
-                # 'default_end_date':self.last_policy.end_date,
-                # 'default_branch':self.last_policy.branch.id,
-
-                # 'default_edit_number':self.number_edit ,
-
-                res['edit_number'] = lead.number_edit
-                res['std_id'] = lead.last_policy.std_id
-
-                res['start_date'] = lead.last_policy.start_date
-
-                res['issue_date'] = lead.last_policy.issue_date
-
-                res['end_date'] = lead.last_policy.end_date
-
-
-                res['new_risk_ids'] = [(6, 0, [26])]
-                res['insurance_type'] = lead.last_policy.insurance_type
-                res['line_of_bussines'] = lead.last_policy.line_of_bussines.id
-                # res['name_cover_rel_ids'] = value
-                print(self.new_risk_ids)
 
 
 
@@ -170,18 +105,12 @@ class PolicyBroker(models.Model):
             'target': 'new',
             'context': ctx,
         }
-
-
-
-
-
     @api.onchange("t_permimum","term")
     def _cmpute_date_and_amount(self):
         if self.term == "onetime":
             self.rella_installment_id = [(0, 0, {
                 "date": self.start_date,
                 "amount": self.t_permimum,
-
             })]
         elif self.term == "year":
             start = fields.Datetime.from_string(self.start_date)
@@ -225,10 +154,9 @@ class PolicyBroker(models.Model):
             self.rella_installment_id = phone_numbers
 
 
-    @api.onchange('line_of_bussines')
-    def _compute_comment_policy(self):
-        for record in self:
-            record.check_item = record.line_of_bussines.object
+    # @api.onchange('line_of_bussines')
+    # def _compute_comment_policy(self):
+    #     self.check_item = self.line_of_bussines.object
 
     @api.multi
     def print_policy(self):
@@ -242,37 +170,40 @@ class PolicyBroker(models.Model):
 
 
     bool = fields.Boolean()
-    edit_number = fields.Integer(string="Endorsement No.")
-    edit_decr = fields.Text('Endorsement Description', readonly=True)
+    edit_number = fields.Integer(string="Endorsement No.",copy=True)
+    edit_decr = fields.Text('Endorsement Description', readonly=True,copy=True)
 
 
 
 
-    policy_number = fields.Char(string="Renewal Policy Number")
+
+    last_policy=fields.Many2one('policy.broker')
+
+    policy_number = fields.Char(string="Renewal Policy Number",copy=True)
+
     renwal_check = fields.Boolean(string="Renewal")
-    holding_cam = fields.Char(string="Holding Campany")
 
-    std_id = fields.Char(string="Policy Number" ,required=True)
-    issue_date = fields.Date(string="Issue Date",required=True)
-    start_date = fields.Date(string="Effective From",required=True)
-    end_date = fields.Date(string="Effective To",required=True)
+    std_id = fields.Char(string="Policy Number" ,required=True,copy=True)
+    issue_date = fields.Date(string="Issue Date",required=True,copy=True)
+    start_date = fields.Date(string="Effective From",required=True,copy=True)
+    end_date = fields.Date(string="Effective To",required=True,copy=True)
 
 
 
     term = fields.Selection(
         [("onetime", "One Time"), ("year", "yearly"), ("quarter", "Quarterly"), ("month", "Monthly")],
-        string="Payment Frequency")
-    no_years = fields.Integer(string="No. Years", default=1)
+        string="Payment Frequency",copy=True)
+    no_years = fields.Integer(string="No. Years", default=1,copy=True)
 
 
-    gross_perimum = fields.Float(string="Gross Perimum")
-    t_permimum = fields.Float(string="Net Permium", compute="_compute_t_premium")
+    gross_perimum = fields.Float(string="Gross Perimum",copy=True)
+    t_permimum = fields.Float(string="Net Permium", compute="_compute_t_premium",copy=True)
 
 
-    salesperson = fields.Many2one('res.partner', string='Salesperson' ,domain="[('agent','=',1)]")
+    salesperson = fields.Many2one('res.partner', string='Salesperson' ,domain="[('agent','=',1)]",copy=True)
 
-    commission_per = fields.Float(string="Commission",compute="_compute_commission_per")
-    share_commission=fields.One2many('insurance.share.commission','policy_id',string='Share Commissions')
+    commission_per = fields.Float(string="Commission",compute="_compute_commission_per",copy=True)
+    share_commission=fields.One2many('insurance.share.commission','policy_id',string='Share Commissions',copy=True)
 
     @api.multi
     def _compute_commission_per(self):
@@ -290,40 +221,41 @@ class PolicyBroker(models.Model):
 
     rella_installment_id = fields.One2many("installment.installment", "installment_rel_id")
 
-    customer = fields.Many2one('res.partner', 'Customer')
+    customer = fields.Many2one('res.partner', 'Customer',copy=True)
 
     insurance_type = fields.Selection([('Life', 'Life'),
                                        ('P&C', 'P&C'),
                                        ('Health', 'Health'), ],
-                                      'Insurance Type', track_visibility='onchange')
+                                      'Insurance Type', track_visibility='onchange',copy=True)
     ins_type = fields.Selection([('Individual', 'Individual'),
                                  ('Group', 'Group'), ],
-                                'I&G', track_visibility='onchange')
+                                'I&G', track_visibility='onchange',copy=True)
     line_of_bussines = fields.Many2one('insurance.line.business', string='Line of business',
-                                       domain="[('insurance_type','=',insurance_type)]")
+                                       domain="[('insurance_type','=',insurance_type)]",copy=True)
 
-    check_item = fields.Char()
+    check_item = fields.Selection(related="line_of_bussines.object",copy=True)
     group = fields.Boolean()
 
 
 
-    commision = fields.Float(string="Basic Brokerage", compute="_compute_brokerage")
-    com_commision = fields.Float(string="Complementary  Brokerage", compute="_compute_brokerage")
-    fixed_commision = fields.Float(string="Fixed Brokerage", compute="_compute_brokerage")
-    earl_commision = fields.Float(string="Early Collection" , compute="_compute_brokerage")
-    total_commision = fields.Float(string="total Brokerage", compute="_compute_brokerage")
-    new_risk_ids = fields.One2many("new.risks", 'policy_risk_id', string='Risk' ,copy=True)
 
-    company = fields.Many2one('res.partner', domain="[('insurer_type','=',1)]", string="Insurer")
-    product_policy = fields.Many2one('insurance.product',domain="[('insurer','=',company),('line_of_bus','=',line_of_bussines)]", string="Product")
-    hamda = fields.Many2one("new.risks")
 
+
+
+    commision = fields.Float(string="Basic Brokerage", compute="_compute_brokerage",copy=True)
+    com_commision = fields.Float(string="Complementary  Brokerage", compute="_compute_brokerage",copy=True)
+    fixed_commision = fields.Float(string="Fixed Brokerage", compute="_compute_brokerage",copy=True)
+    earl_commision = fields.Float(string="Early Collection" , compute="_compute_brokerage",copy=True)
+    total_commision = fields.Float(string="total Brokerage", compute="_compute_brokerage",copy=True)
+    new_risk_ids = fields.One2many("new.risks",'policy_risk_id', string='Risk',copy=True)
+    company = fields.Many2one('res.partner', domain="[('insurer_type','=',1)]", string="Insurer",copy=True)
+    product_policy = fields.Many2one('insurance.product',domain="[('insurer','=',company),('line_of_bus','=',line_of_bussines)]", string="Product",copy=True)
     name_cover_rel_ids = fields.One2many("covers.lines","policy_rel_id",string="Covers Details",copy=True)
-    currency_id = fields.Many2one("res.currency","Currency Code")
-    benefit =fields.Char("Beneficiary")
+    currency_id = fields.Many2one("res.currency","Currency Code",copy=True)
+    benefit =fields.Char("Beneficiary",copy=True)
 
     checho = fields.Boolean()
-    count_claim = fields.Integer(compute="_compute_claim")
+    count_claim = fields.Integer(compute="_compute_claim",copy=True)
     validate=fields.Selection([('info', 'Info'),
                                 ('risk', 'Risk'),
                                 ('cover', 'Cover'),
@@ -332,10 +264,6 @@ class PolicyBroker(models.Model):
                                 ('ins', 'Ins'),
                                 ('inv', 'Inv'),],
                                       'validate', track_visibility='onchange',default='info')
-    validate_basic_mark = fields.Boolean(copy=False,default=True)
-    validate_risk_mark = fields.Boolean(copy=False)
-    validate_cover_mark = fields.Boolean(copy=False)
-    validate_comm_mark = fields.Boolean(copy=False)
 
 
     @api.multi
@@ -346,14 +274,25 @@ class PolicyBroker(models.Model):
     def validate_risk(self):
         if self.line_of_bussines:
             self.validate = 'risk'
-
             return True
+
 
     @api.multi
     def validate_cover(self):
         if self.new_risk_ids:
             self.validate = 'cover'
+            if self.renwal_check:
+                coverlines = self.env["covers.lines"].search([('id', 'in', self.name_cover_rel_ids.ids)])
+                for rec in coverlines:
+                    risk_id = self.env["new.risks"].search([('old_id', '=', rec.old_risk_id)]).id
+                    rec.write({'riskk': risk_id, })
+            if self.edit_number:
+                coverlines = self.env["covers.lines"].search([('id', 'in', self.name_cover_rel_ids.ids)])
+                for rec in coverlines:
+                    risk_id = self.env["new.risks"].search([('old_id_end', '=', rec.old_risk_id_end)]).id
+                    rec.write({'riskk': risk_id, })
             return True
+
 
     @api.multi
     def validate_commission(self):
@@ -377,7 +316,7 @@ class PolicyBroker(models.Model):
       if self.company:
            return {'domain': {'branch': [('setup_id.setup_key','=','branch'),('setup_id.setup_id','=',self.company.name)]}}
 
-    branch = fields.Many2one('insurance.setup.item',string="Branch",domain="[('setup_id.setup_key','=','branch'),('setup_id.setup_id','=',company)]")
+    branch = fields.Many2one('insurance.setup.item',string="Branch",domain="[('setup_id.setup_key','=','branch'),('setup_id.setup_id','=',company)]",copy=True)
 
 
 
@@ -409,15 +348,6 @@ class PolicyBroker(models.Model):
             rec.fixed_commision = (rec.product_policy.brokerage.fixed_commission * rec.t_permimum) / 100
             rec.total_commision = rec.commision + rec.com_commision + rec.fixed_commision + rec.earl_commision
 
-
-
-
-
-
-
-
-
-
     @api.multi
     def generate_covers(self):
         self.checho = True
@@ -438,7 +368,6 @@ class PolicyBroker(models.Model):
     _sql_constraints = [
         ('std_id_unique', 'unique(std_id,policy_number)', 'Policy Number  already exists!')]
 
-
     @api.multi
     def create_renewal(self):
         view = self.env.ref('insurance_broker_system_blackbelts.policy_form_view')
@@ -446,15 +375,33 @@ class PolicyBroker(models.Model):
         risk = self.env["new.risks"].search([('id', 'in', self.new_risk_ids.ids)])
         records_risk = []
         for rec in risk:
-            object = (0, 0,
-                      {'risk_description': rec.risk_description,
+            object = (0, 0,{'risk_description': rec.risk_description,'old_id': rec.id,
                        'car_tybe':rec.car_tybe.id, 'motor_cc':rec.motor_cc, 'year_of_made':rec.year_of_made, 'model':rec.model.id, 'Man':rec.Man.id,
                        'name':rec.name, 'DOB':rec.DOB, 'job':rec.job.id,
                        'From':rec.From, 'To':rec.To, 'cargo_type':rec.cargo_type, 'weight':rec.weight,
                        'address':rec.address , 'type':rec.type,
                        'group_name': rec.group_name, 'count': rec.count, 'file': rec.file,
+
                        })
             records_risk.append(object)
+
+        coverlines = self.env["covers.lines"].search([('id', 'in', self.name_cover_rel_ids.ids)])
+        records_cover = []
+        for rec in coverlines:
+            covers = (0, 0,
+                      {
+                       'old_risk_id':rec.riskk.id,
+                       'name1': rec.name1.id,
+                       'check': rec.check,
+                       'sum_insure': rec.sum_insure,
+                       'deductible': rec.deductible,
+                       'limitone': rec.limitone,
+                       'limittotal': rec.limittotal,
+                       'rate': rec.rate,
+                       'net_perimum': rec.net_perimum,
+                       }
+                      )
+            records_cover.append(covers)
 
         share_commission = self.env["insurance.share.commission"].search([('id', 'in', self.share_commission.ids)])
         records_commission = []
@@ -475,25 +422,7 @@ class PolicyBroker(models.Model):
                        })
             records_installments.append(install)
 
-        coverlines = self.env["covers.lines"].search([('id', 'in', self.name_cover_rel_ids.ids)])
-        print(coverlines)
-        records_cover = []
-        for rec in coverlines:
-            print(rec)
-            covers=(
-                0,0,{'riskk':rec.riskk.id,
-                     'name1':rec.name1.id,
-                     'check':rec.check,
-                     'sum_insure':rec.sum_insure,
-                     'deductible':rec.deductible,
-                     'limitone': rec.limitone,
-                     'limittotal': rec.limittotal,
-                     'rate':rec.rate,
-                     'net_perimum':rec.net_perimum,
 
-                     }
-            )
-            records_cover.append(covers)
 
         return {
             'name': ('Policy'),
@@ -506,7 +435,6 @@ class PolicyBroker(models.Model):
             # 'flags': {'form': {'options': {'mode': 'view'}}},
             'context': {
                 'default_renwal_check': True,
-                'default_checho': True,
                 'default_policy_number': self.std_id,
                 'default_company': self.company.id,
                 'default_ins_type': self.ins_type,
@@ -521,6 +449,8 @@ class PolicyBroker(models.Model):
                 'default_salesperson': self.salesperson.id,
                 'default_currency_id': self.currency_id.id,
                 'default_benefit': self.benefit,
+                'default_term': self.term,
+                'default_no_years': self.no_years,
                 'default_gross_perimum': self.gross_perimum,
                 'default_commision': self.commision,
                 'default_com_commision': self.com_commision,
@@ -534,8 +464,6 @@ class PolicyBroker(models.Model):
                 'default_name_cover_rel_ids': records_cover,
             }
         }
-
-
 
 
 
@@ -670,14 +598,14 @@ class Extra_Covers(models.Model):
     _rec_name= 'name1'
 
     riskk = fields.Many2one("new.risks", "Risk",domain="[('id','in',new_risk_ids)]")
-    # risk_description = fields.Text(string="Risk Description")
-    #
+
+    old_risk_id = fields.Integer()
+    old_risk_id_end = fields.Integer()
+
     insurerd = fields.Many2one(related="policy_rel_id.company")
     prod_product = fields.Many2one(related="policy_rel_id.product_policy",domain="[('insurer','=',insurerd)]")
-
     name1 = fields.Many2one("insurance.product.coverage",string="Cover", domain="[('product_id', '=' , prod_product)]")
     check = fields.Boolean(related="name1.readonly")
-
     sum_insure = fields.Float(string="SI")
     deductible = fields.Integer('Deductible')
     limitone=fields.Integer('Limit in One')
@@ -766,10 +694,51 @@ class InstallmentClass(models.Model):
     _rec_name = "date"
 
     date = fields.Date(string="Date")
+    insurer=fields.Many2one(related="installment_rel_id.company")
+    ins_product = fields.Many2one(related="installment_rel_id.product_policy",domain="[('insurer','=',insurer)]")
+    policy_number=fields.Char(related='installment_rel_id.std_id')
+    ins_type=fields.Selection(related='installment_rel_id.insurance_type')
+    lob=fields.Many2one(related='installment_rel_id.line_of_bussines', domain="[('insurance_type','=',ins_type)]")
+
+    customer=fields.Many2one(related='installment_rel_id.customer',string='Customer')
+    pay_customer=fields.Boolean(string='Customer Payment')
+    pay_date=fields.Date(string='Collection Date')
+    pay_method = fields.Many2one('account.journal',string='Collection Method')
+    method_type=fields.Selection(related='pay_method.type')
+    check_details=fields.Char('Check Details')
+    recp_No = fields.Char('Receipt Number')
+
+    delv_insurer = fields.Boolean(string='Delivered')
+    delv_date_ins = fields.Date(string='Delivery Date')
+    delv_method_ins =fields.Many2one('account.journal',string='Delivery Method')
+    check_details_delv=fields.Char('Check Details')
+    recp_No_delv = fields.Char('Receipt Number')
+
+
+    # pay_method_ins = fields.Many2one('account.journal', string='Collection Date')
+    customer_pay_check=fields.Boolean(string='Customer Payment',compute='customer_check_payment',store=True)
+    insurer_delv_check = fields.Boolean(string='Insurer Delivery',compute='ins_check_delivery',store=True)
+
     # enddate = fields.Date(string="End of premium")
     amount = fields.Float(string="Amount")
     state = fields.Selection([('open', 'Open'),
                              ('paid', 'Paid')],
                            'State',defualt='open')
     installment_rel_id = fields.Many2one("policy.broker")
+
+    @api.one
+    @api.depends('pay_customer')
+    def customer_check_payment(self):
+        if self.pay_customer:
+            self.customer_pay_check=True
+    @api.one
+    @api.depends('delv_insurer')
+    def ins_check_delivery(self):
+        if self.delv_insurer:
+            self.insurer_delv_check = True
+
+
+
+
+
 

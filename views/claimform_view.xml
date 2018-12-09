@@ -12,9 +12,9 @@
                 <field name="customer_policy" string="Customer"/>
                 <field name="policy_number" string="Policy Number"/>
                 <field name="name" string="Claim Number"/>
-                <field name="totalclaimexp" string="Expected"/>
-                <field name="totalsettled" string="Total Setteled"/>
-                <field name="total_paid_amount" string="Total Paid"/>
+                <field name="totalclaimexp" string="Expected" sum="Expected"/>
+                <field name="totalsettled" string="Total Setteled" sum="Total Setteled"/>
+                <field name="total_paid_amount" string="Total Paid" sum="Total Paid"/>
                 <field name="claimstatus" string="Status"/>
             </tree>
         </field>
@@ -95,15 +95,15 @@
                                     <tree>
                                         <field name="risk_id" />
                                         <field name="coverage"/>
-                                        <field name="sum_insured"/>
-                                        <field name="settle_amount"/>
+                                        <field name="sum_insured" string="Sum Insured" sum="Sum Insured"/>
+                                        <field name="settle_amount" string="Settle Amount" sum="Settle Amount"/>
                                         <field name="settle_date"/>
                                         <field name="status" widget="selection"/>
                                     </tree>
                                 </field>
                             </group>
                             <group>
-                                <field name="totalsettled" style="color:green;"/>
+                                <field name="totalsettled" style="color:green;" readonly="1" force_save="1"/>
                             </group>
 
                         </page>
@@ -112,7 +112,7 @@
                                 <field name="payment_history" nolabel="1">
                                     <tree editable="1">
                                         <field name="payment_date"/>
-                                        <field name="paid_amount"/>
+                                        <field name="paid_amount" string="Paid Amount" sum="Paid Amount"/>
                                         <field name="currency"/>
                                         <field name="check_bank"/>
                                         <field name="check_number"/>
@@ -121,7 +121,8 @@
                                 </field>
                             </group>
                             <group>
-                                <field name="totalunpaid" style="color:red;"/>
+                                <field name="total_paid_amount" readonly="1" force_save="1" style="color:green;"/>
+                                <field name="totalunpaid" style="color:red;" readonly="1" force_save="1"/>
                             </group>
                         </page>
                         <page string="Claim Procedure">
@@ -172,7 +173,6 @@
                 </div>
                 <group>
                     <field name="risk_id" widget="selection"/>
-                    <field name="risk" invisible="1"/>
                     <field name="vcar_type" attrs="{'invisible': [('risk_type', '!=', 'vehicle')]}" readonly="1" force_save="1"/>
                     <field name="vmotor_cc" attrs="{'invisible': [('risk_type', '!=', 'vehicle')]}" readonly="1" force_save="1"/>
                     <field name="vyear_of_made" attrs="{'invisible': [('risk_type', '!=', 'vehicle')]}" readonly="1" force_save="1"/>
